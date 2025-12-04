@@ -121,19 +121,19 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 **File**: `src/utils/claim_extractor.py`
 
-- [ ] Create `extract_from_text(text: str) -> Claim`:
+- [x] Create `extract_from_text(text: str) -> Claim`:
   - Use LLM to identify core verifiable statement
   - Extract entities (people, places, dates, orgs)
   - Categorize claim type
-- [ ] Create `extract_from_url(url: str) -> Claim`:
+- [x] Create `extract_from_url(url: str) -> Claim`:
   - Fetch article with `newspaper3k`
   - Extract headline and body
   - Pass to `extract_from_text()`
-- [ ] Handle edge cases:
+- [x] Handle edge cases:
   - Paywalled content
   - Invalid URLs
   - Multiple claims in one article
-- [ ] Write tests with 5 sample claims (political, health, economy, science, general)
+- [x] Write tests with 5 sample claims (political, health, economy, science, general)
 
 **Test Cases**:
 1. Simple text: "L'ISTAT ha dichiarato che l'inflazione è al 5%"
