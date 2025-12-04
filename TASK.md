@@ -100,17 +100,17 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 **File**: `src/models/schemas.py`
 
-- [ ] Create `Claim` model:
+- [x] Create `Claim` model:
   - `id`, `raw_input`, `core_claim`, `entities`, `category`
-- [ ] Create `Source` model:
+- [x] Create `Source` model:
   - `url`, `title`, `snippet`, `reliability`, `timestamp`, `agent`
-- [ ] Create `DebateMessage` model:
+- [x] Create `DebateMessage` model:
   - `round`, `agent`, `message_type`, `content`, `sources`, `confidence`
-- [ ] Create `Verdict` model (full JSON schema from planning)
-- [ ] Create `GraphState` model for LangGraph:
+- [x] Create `Verdict` model (full JSON schema from planning)
+- [x] Create `GraphState` model for LangGraph:
   - `claim`, `messages`, `pro_sources`, `contra_sources`, `round_count`
-- [ ] Add validation methods (e.g., URL validation, date parsing)
-- [ ] Write unit tests for each model
+- [x] Add validation methods (e.g., URL validation, date parsing)
+- [x] Write unit tests for each model
 
 **Deliverable**: `schemas.py` with typed models
 
