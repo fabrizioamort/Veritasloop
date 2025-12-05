@@ -149,7 +149,7 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 **File**: `src/utils/tool_manager.py`
 
-- [ ] Create `ToolManager` class:
+- [x] Create `ToolManager` class:
   ```python
   class ToolManager:
       def __init__(self):
@@ -165,9 +165,9 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
       def clear_cache(self):
           # Clear for new claim
   ```
-- [ ] Implement cache expiration (TTL: 1 hour)
-- [ ] Add logging for cache hits/misses
-- [ ] Write unit tests
+- [x] Implement cache expiration (TTL: 1 hour)
+- [x] Add logging for cache hits/misses
+- [x] Write unit tests
 
 **Deliverable**: `ToolManager` with caching
 

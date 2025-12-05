@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@brave/brave-search-mcp-server", "--transport", "stdio"],
+      "env": { "BRAVE_API_KEY": "BSAMKKP6rF7EgshMtQ24YrtclnUXdCE" }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": { "CONTEXT7_API_KEY": "ctx7sk-11ab3617-d6b7-4c40-b9a5-7b26f1119a48" }
+    }
+  }
+}
