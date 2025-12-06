@@ -180,21 +180,21 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 **File**: `src/tools/search_tools.py`
 
-- [ ] Implement `brave_search(query: str, count: int = 10) -> List[Dict]`:
+- [x] Implement `brave_search(query: str, count: int = 10) -> List[Dict]`:
   - API key from env
   - Parse response to standard format
   - Handle rate limits (429 errors)
-- [ ] Implement `duckduckgo_search(query: str) -> List[Dict]`:
+- [x] Implement `duckduckgo_search(query: str) -> List[Dict]`:
   - Fallback when Brave fails
   - HTML parsing (no API key needed)
-- [ ] Implement `google_pse_factcheck(query: str) -> List[Dict]`:
+- [x] Implement `google_pse_factcheck(query: str) -> List[Dict]`:
   - Restrict to fact-checking domains
   - Return existing fact-checks if found
-- [ ] Create unified interface:
+- [x] Create unified interface:
   ```python
   def search(query: str, tool: str = "brave") -> List[Dict]
   ```
-- [ ] Write integration tests (mock API responses)
+- [x] Write integration tests (mock API responses)
 
 **Deliverable**: Working search functions
 
@@ -205,16 +205,16 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 **File**: `src/tools/content_tools.py`
 
-- [ ] Implement `fetch_article(url: str) -> Dict`:
+- [x] Implement `fetch_article(url: str) -> Dict`:
   - Use `newspaper3k` for article extraction
   - Fallback to `BeautifulSoup` if newspaper fails
   - Extract: title, text, publish_date, authors
-- [ ] Implement `assess_source_reliability(url: str) -> str`:
+- [x] Implement `assess_source_reliability(url: str) -> str`:
   - Domain whitelist for "high" (gov, major news)
   - Check domain age, HTTPS
   - Return: "high", "medium", "low"
-- [ ] Handle paywalls gracefully (return snippet)
-- [ ] Write tests with 5 different source types
+- [x] Handle paywalls gracefully (return snippet)
+- [x] Write tests with 5 different source types
 
 **Deliverable**: Article extraction with reliability scoring
 
