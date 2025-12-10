@@ -1,0 +1,36 @@
+
+:root {
+  /* Colors */
+  --bg-dark: #0a0f1c;
+  --bg-panel: rgba(255, 255, 255, 0.03);
+  --bg-panel-hover: rgba(255, 255, 255, 0.05);
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-muted: #6b6b80;
+
+  --color-pro: #00e5ff;
+  --color-pro-glow: rgba(0, 229, 255, 0.3);
+  
+  --color-contra: #ff9100;
+  --color-contra-glow: rgba(255, 145, 0, 0.3);
+  
+  --color-judge: #ffd700;
+  --color-judge-glow: rgba(255, 215, 0, 0.3);
+  
+  --color-accent: #6c63ff;
+
+  /* Spacing */
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  /* Typography */
+  --font-main: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
