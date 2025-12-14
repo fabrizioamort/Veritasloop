@@ -6,6 +6,10 @@ from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from src.orchestrator.graph import get_app, enable_tracing
 from src.models.schemas import Claim, Entities, GraphState

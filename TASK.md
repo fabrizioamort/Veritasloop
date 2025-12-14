@@ -1009,3 +1009,17 @@ If you need to deliver a working demo quickly, follow this reduced path:
 - Adjust timeline based on your familiarity with LangGraph
 - Consider pair programming for complex tasks (agents, graph)
 - Test incrementally - don't wait until the end!
+
+---
+
+## 🔮 Phase 10: "Digital Magic" UI (3D)
+
+### Task 10.1: 3D Discussion Visualization
+**Priority**: Critical | **Est. Time**: 8 hours
+
+- [ ] Install 3D dependencies (`react-three-fiber`, `drei`, `cannon`)
+- [ ] Create 3D Scene component
+- [ ] Implement 3D Avatars for Agents
+- [ ] Visualize Debate Flow with Physics
+- [ ] Integrate Real-time WebSocket Updates
+- [ ] Add Particle Effects & Polish
