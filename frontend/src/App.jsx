@@ -4,6 +4,7 @@ import { Send, Zap, Activity } from 'lucide-react';
 import AgentNode from './components/AgentNode';
 import DebateStream from './components/DebateStream';
 import VerdictReveal from './components/VerdictReveal';
+import ConfigPanel from './components/ConfigPanel';
 
 const API_URL = 'ws://localhost:8000/ws/verify';
 
@@ -204,75 +205,37 @@ function App() {
 
           {/* Input Area (Only visible when not processing) */}
           <div className="p-6 border-t border-white/10 bg-black/40 backdrop-blur-md">
-            {/* Configuration Controls */}
-            <div className="flex gap-4 max-w-3xl mx-auto mb-4 text-xs">
-              <div className="flex items-center gap-2">
-                <label className="text-gray-400">Max Iterations:</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={maxIterations}
-                  onChange={e => setMaxIterations(parseInt(e.target.value) || 1)}
-                  className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-center focus:outline-none focus:border-accent"
-                  disabled={isProcessing}
-                  title="Maximum number of debate rounds (1-10)"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-gray-400">Max Searches:</label>
-                <input
-                  type="number"
-                  min="-1"
-                  max="20"
-                  value={maxSearches}
-                  onChange={e => setMaxSearches(parseInt(e.target.value) || -1)}
-                  className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-center focus:outline-none focus:border-accent"
-                  disabled={isProcessing}
-                  title="Maximum searches per agent (-1 = unlimited)"
-                />
-                <span className="text-gray-500 text-xs">(-1 = unlimited)</span>
-              </div>
-            </div>
+
+            <ConfigPanel
+              maxIterations={maxIterations}
+              setMaxIterations={setMaxIterations}
+              maxSearches={maxSearches}
+              setMaxSearches={setMaxSearches}
+              inputType={inputType}
+              setInputType={setInputType}
+              language={language}
+              setLanguage={setLanguage}
+              isProcessing={isProcessing}
+            />
 
             {/* Main Input */}
             <div className="flex gap-4 max-w-3xl mx-auto">
-              <select
-                value={inputType}
-                onChange={e => setInputType(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded px-4 py-2 text-sm focus:outline-none focus:border-accent"
-                disabled={isProcessing}
-              >
-                <option value="Text">TEXT</option>
-                <option value="URL">URL</option>
-              </select>
-
-              <select
-                value={language}
-                onChange={e => setLanguage(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded px-4 py-2 text-sm focus:outline-none focus:border-accent"
-                disabled={isProcessing}
-              >
-                <option value="Italian">🇮🇹 Italian</option>
-                <option value="English">🇬🇧 English</option>
-              </select>
-
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && startVerification()}
                 placeholder={inputType === 'URL' ? "Paste article URL..." : "Enter claim to verify..."}
-                className="flex-1 bg-white/5 border border-white/10 rounded px-4 py-2 focus:outline-none focus:border-accent focus:bg-white/10 transition-colors"
+                className="flex-1 bg-white/5 border border-white/10 rounded px-4 py-3 focus:outline-none focus:border-accent focus:bg-white/10 transition-colors text-lg shadow-inner"
                 disabled={isProcessing}
               />
 
               <button
                 onClick={startVerification}
                 disabled={isProcessing || !input}
-                className="bg-accent hover:bg-opacity-80 text-white px-6 py-2 rounded font-bold flex items-center gap-2 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-accent hover:bg-opacity-80 text-white px-8 py-3 rounded font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]"
               >
-                <Send size={18} />
+                <Send size={20} />
                 VERIFY
               </button>
             </div>
