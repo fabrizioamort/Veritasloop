@@ -138,6 +138,9 @@ class GraphState(TypedDict):
         round_count: Current debate round number.
         max_iterations: Maximum number of debate rounds (default: 3).
         max_searches: Maximum number of searches per agent (default: unlimited).
+        language: Language for agent responses (default: Italian).
+        pro_personality: Personality style for PRO agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
+        contra_personality: Personality style for CONTRA agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
     """
     claim: Optional[Claim]
     messages: Annotated[List[DebateMessage], operator.add]
@@ -148,3 +151,5 @@ class GraphState(TypedDict):
     max_iterations: int
     max_searches: int
     language: str
+    pro_personality: str
+    contra_personality: str

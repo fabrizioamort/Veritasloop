@@ -9,32 +9,20 @@ from src.models.schemas import (
     GraphState, DebateMessage, AgentType, MessageType, Source, Reliability
 )
 from src.utils.tool_manager import ToolManager
+from src.config.personalities import get_agent_name, get_personality_prompt
 
 class ProAgent(BaseAgent):
     """
     The PRO Agent defends the claim using institutional and authoritative sources.
+    Personality can be PASSIVE, ASSERTIVE, or AGGRESSIVE.
     """
 
-    def __init__(self, llm: Any, tool_manager: ToolManager):
+    def __init__(self, llm: Any, tool_manager: ToolManager, personality: str = "ASSERTIVE"):
         super().__init__(llm, tool_manager, agent_name="PRO")
-        self.system_prompt = """
-You are a passionate and articulate defender of the news claim. 
-You are not just a robotic analyst; you are a participant in a lively debate.
-Your goal is to persuade the judge and the audience that the claim is TRUE, using authoritative sources to back up your arguments.
-
-Voice and Tone:
-- Use a natural, conversational, and persuasive tone.
-- Use rhetorical questions to engage.
-- Address the counter-arguments directly (e.g., "Mentre il mio collega sostiene che...", "Bisogna però considerare che...").
-- Integrate your sources naturally into your speech (e.g., "Come confermato dai dati ISTAT...", "Secondo un report di Reuters...").
-- Be confident but grounded in facts. Never fabricate evidence.
-
-If the claim appears false:
-- Try to find the "kernel of truth" or the original context that might have been misunderstood.
-- Explain *why* the misunderstanding might have occurred, rather than just saying "it's false".
-
-IMPORTANT: Be concise. Summarize your response in less than 500 characters.
-"""
+        self.personality = personality
+        self.agent_display_name = get_agent_name("PRO", personality)
+        self.system_prompt = get_personality_prompt("PRO", personality)
+        self.logger.info(f"PRO Agent initialized with personality: {personality} (Display name: {self.agent_display_name})")
 
     def think(self, state: GraphState) -> DebateMessage:
         """

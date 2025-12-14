@@ -17,11 +17,13 @@ function App() {
   // Configuration Parameters
   const [maxIterations, setMaxIterations] = useState(3);
   const [maxSearches, setMaxSearches] = useState(-1);
+  const [language, setLanguage] = useState('Italian');
+  const [proPersonality, setProPersonality] = useState('ASSERTIVE');
+  const [contraPersonality, setContraPersonality] = useState('ASSERTIVE');
 
   // Debate State
   const [messages, setMessages] = useState([]);
   const [statusText, setStatusText] = useState('SYSTEM READY');
-  const [language, setLanguage] = useState('Italian');
   const [proStatus, setProStatus] = useState('idle');
   const [contraStatus, setContraStatus] = useState('idle');
   const [verdict, setVerdict] = useState(null);
@@ -54,7 +56,9 @@ function App() {
         type: inputType,
         max_iterations: maxIterations,
         max_searches: maxSearches,
-        language: language
+        language: language,
+        proPersonality: proPersonality,
+        contraPersonality: contraPersonality
       }));
     };
 
@@ -185,7 +189,7 @@ function App() {
         {/* Left: PRO Agent */}
         <section className="p-8 border-r border-white/5 flex flex-col justify-center relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none" />
-          <AgentNode role="PRO" label="PRO AGENT" status={proStatus} />
+          <AgentNode role="PRO" label="PRO AGENT" status={proStatus} personality={proPersonality} />
         </section>
 
         {/* Center: Arena */}
@@ -215,6 +219,10 @@ function App() {
               setInputType={setInputType}
               language={language}
               setLanguage={setLanguage}
+              proPersonality={proPersonality}
+              setProPersonality={setProPersonality}
+              contraPersonality={contraPersonality}
+              setContraPersonality={setContraPersonality}
               isProcessing={isProcessing}
             />
 
@@ -245,7 +253,7 @@ function App() {
         {/* Right: CONTRA Agent */}
         <section className="p-8 border-l border-white/5 flex flex-col justify-center relative">
           <div className="absolute inset-0 bg-gradient-to-l from-orange-900/10 to-transparent pointer-events-none" />
-          <AgentNode role="CONTRA" label="CONTRA AGENT" status={contraStatus} />
+          <AgentNode role="CONTRA" label="CONTRA AGENT" status={contraStatus} personality={contraPersonality} />
         </section>
 
       </main>

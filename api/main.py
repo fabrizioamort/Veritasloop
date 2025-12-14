@@ -100,8 +100,10 @@ async def websocket_endpoint(websocket: WebSocket):
         max_iterations = request_data.get("max_iterations", 3)
         max_searches = request_data.get("max_searches", -1)
         language = request_data.get("language", "Italian")
+        pro_personality = request_data.get("proPersonality", "ASSERTIVE")
+        contra_personality = request_data.get("contraPersonality", "ASSERTIVE")
 
-        logger.info(f"Received verification request: {input_type} (max_iterations={max_iterations}, max_searches={max_searches})")
+        logger.info(f"Received verification request: {input_type} (max_iterations={max_iterations}, max_searches={max_searches}, pro={pro_personality}, contra={contra_personality})")
 
         # 1. Extract Claim
         await websocket.send_json({
@@ -136,7 +138,9 @@ async def websocket_endpoint(websocket: WebSocket):
             "round_count": 0,
             "max_iterations": max_iterations,
             "max_searches": max_searches,
-            "language": language
+            "language": language,
+            "pro_personality": pro_personality,
+            "contra_personality": contra_personality
         }
 
         # 3. Stream from LangGraph

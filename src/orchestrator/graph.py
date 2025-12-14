@@ -103,34 +103,42 @@ def get_app():
     if _tracing_enabled:
         logger.info("Running with Phoenix observability enabled")
 
-    # Initialize Agents
-    pro_agent = ProAgent(llm=llm, tool_manager=tool_manager)
-    contra_agent = ContraAgent(llm=llm, tool_manager=tool_manager)
+    # Initialize Judge Agent (doesn't need personality)
     judge_agent = JudgeAgent(llm=llm, tool_manager=tool_manager)
 
     def pro_research(state: GraphState) -> dict:
-        logger.info("PRO agent starting research phase")
+        # Create PRO agent with personality from state
+        pro_personality = state.get('pro_personality', 'ASSERTIVE')
+        pro_agent = ProAgent(llm=llm, tool_manager=tool_manager, personality=pro_personality)
+
+        logger.info(f"PRO agent ({pro_agent.agent_display_name}) starting research phase")
         with log_performance("pro_research", logger):
             message = pro_agent.think(state)
             logger.info(
                 f"PRO research complete",
                 extra={
                     "sources_found": len(message.sources),
-                    "confidence": message.confidence
+                    "confidence": message.confidence,
+                    "personality": pro_personality
                 }
             )
             # Return only the update. Messages is Annotated with add, so we return a list of new messages.
             return {"messages": [message]}
 
     def contra_research(state: GraphState) -> dict:
-        logger.info("CONTRA agent starting research phase")
+        # Create CONTRA agent with personality from state
+        contra_personality = state.get('contra_personality', 'ASSERTIVE')
+        contra_agent = ContraAgent(llm=llm, tool_manager=tool_manager, personality=contra_personality)
+
+        logger.info(f"CONTRA agent ({contra_agent.agent_display_name}) starting research phase")
         with log_performance("contra_research", logger):
             message = contra_agent.think(state)
             logger.info(
                 f"CONTRA research complete",
                 extra={
                     "sources_found": len(message.sources),
-                    "confidence": message.confidence
+                    "confidence": message.confidence,
+                    "personality": contra_personality
                 }
             )
             return {"messages": [message]}

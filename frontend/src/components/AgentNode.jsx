@@ -15,10 +15,32 @@ const colors = {
     JUDGE: 'var(--color-judge)'
 };
 
-const AgentNode = ({ role, status, label }) => {
+// Agent names based on personality
+const AGENT_NAMES = {
+    PRO: {
+        PASSIVE: "Oliver",
+        ASSERTIVE: "Marcus",
+        AGGRESSIVE: "Victor"
+    },
+    CONTRA: {
+        PASSIVE: "Sophie",
+        ASSERTIVE: "Diana",
+        AGGRESSIVE: "Raven"
+    }
+};
+
+const AgentNode = ({ role, status, label, personality }) => {
     const Icon = icons[role] || Shield;
     const color = colors[role];
     const isActive = status !== 'idle';
+
+    // Get personality-based name if available
+    const agentName = personality && AGENT_NAMES[role]
+        ? AGENT_NAMES[role][personality]
+        : null;
+
+    // Construct display label
+    const displayLabel = agentName ? `${agentName}` : label;
 
     return (
         <div className="flex flex-col items-center gap-4 p-6">
@@ -45,7 +67,10 @@ const AgentNode = ({ role, status, label }) => {
             </div>
 
             <div className="text-center">
-                <h3 className="text-xl font-bold tracking-wider" style={{ color }}>{label}</h3>
+                <h3 className="text-xl font-bold tracking-wider" style={{ color }}>{displayLabel}</h3>
+                <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+                    {role} AGENT
+                </p>
                 <p className="text-sm font-mono text-muted animate-pulse">
                     {isActive ? status.toUpperCase() : 'STANDBY'}
                 </p>

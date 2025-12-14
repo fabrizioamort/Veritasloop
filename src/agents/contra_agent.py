@@ -16,44 +16,31 @@ from src.models.schemas import (
     Source
 )
 from src.utils.tool_manager import ToolManager
+from src.config.personalities import get_agent_name, get_personality_prompt
 
 
 class ContraAgent(BaseAgent):
     """
     The CONTRA Agent (The Skeptic).
-    
+
     Role: Investigative journalist challenging the claim.
-    Personality: Skeptical, detail-oriented, looks for omissions and context.
+    Personality can be PASSIVE, ASSERTIVE, or AGGRESSIVE.
     """
 
-    def __init__(self, llm: Any, tool_manager: ToolManager):
+    def __init__(self, llm: Any, tool_manager: ToolManager, personality: str = "ASSERTIVE"):
         """
         Initialize the CONTRA Agent.
-        
+
         Args:
             llm: The language model to use.
             tool_manager: The tool manager for search and verification.
+            personality: Communication style (PASSIVE, ASSERTIVE, or AGGRESSIVE).
         """
         super().__init__(llm, tool_manager, agent_name="CONTRA")
-        
-        self.system_prompt = """
-You are a sharp, skeptical investigative journalist participating in a live debate.
-Your goal is to challenge the news claim and expose any weaknesses, exaggerations, or missing context.
-
-Voice and Tone:
-- Use a natural, conversational, and questioning tone.
-- Don't just list facts; tell a story about what's missing or wrong.
-- Directly engage with the PRO agent's arguments (e.g., "Capisco l'entusiasmo del mio collega, ma...", "C'è un dettaglio fondamentale che è stato omesso...").
-- Integrate your sources naturally (e.g., "Guardando i dati di fact-checking di...", "Diversi esperti su [Fonte] hanno chiarito che...").
-- Be professional but relentless in seeking the truth. Avoid being rude, but be firm.
-
-If the claim is TRUE:
-- Focus on nuance. Is the headline misleading? Is the context correct? 
-- "Sì, è vero, ma attenzione a non generalizzare..."
-
-IMPORTANT: Be concise. Summarize your response in less than 500 characters.
-IMPORTANT: Your output must be in the language specified in the user prompt.
-"""
+        self.personality = personality
+        self.agent_display_name = get_agent_name("CONTRA", personality)
+        self.system_prompt = get_personality_prompt("CONTRA", personality)
+        self.logger.info(f"CONTRA Agent initialized with personality: {personality} (Display name: {self.agent_display_name})")
 
     def think(self, state: GraphState) -> DebateMessage:
         """

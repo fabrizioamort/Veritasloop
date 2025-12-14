@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Globe, Type, Search, Database } from 'lucide-react';
+import { Settings, Globe, Type, Search, Database, Shield, Feather, Zap, Flame } from 'lucide-react';
 
 const ConfigPanel = ({
     maxIterations,
@@ -10,6 +10,10 @@ const ConfigPanel = ({
     setInputType,
     language,
     setLanguage,
+    proPersonality,
+    setProPersonality,
+    contraPersonality,
+    setContraPersonality,
     isProcessing
 }) => {
     return (
@@ -101,6 +105,117 @@ const ConfigPanel = ({
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                         </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* Group 3: Agent Personalities */}
+            <div className="flex items-center gap-4">
+
+                {/* PRO Agent Personality */}
+                <div className="flex flex-col">
+                    <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5 ml-1">
+                        <Shield size={10} style={{ color: 'var(--color-pro)' }} />
+                        <span>Defender Style</span>
+                    </label>
+                    <div className="flex gap-1.5">
+                        <button
+                            onClick={() => setProPersonality('PASSIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${proPersonality === 'PASSIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Oliver - Cautious and tentative"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Feather size={12} />
+                                <span>Oliver</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setProPersonality('ASSERTIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${proPersonality === 'ASSERTIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Marcus - Confident and persuasive"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Zap size={12} />
+                                <span>Marcus</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setProPersonality('AGGRESSIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${proPersonality === 'AGGRESSIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Victor - Forceful and confrontational"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Flame size={12} />
+                                <span>Victor</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="w-px h-16 bg-white/10 mx-2"></div>
+
+                {/* CONTRA Agent Personality */}
+                <div className="flex flex-col">
+                    <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1.5 ml-1">
+                        <Search size={10} style={{ color: 'var(--color-contra)' }} />
+                        <span>Skeptic Style</span>
+                    </label>
+                    <div className="flex gap-1.5">
+                        <button
+                            onClick={() => setContraPersonality('PASSIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${contraPersonality === 'PASSIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Sophie - Polite and diplomatic"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Feather size={12} />
+                                <span>Sophie</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setContraPersonality('ASSERTIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${contraPersonality === 'ASSERTIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Diana - Professional and firm"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Zap size={12} />
+                                <span>Diana</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setContraPersonality('AGGRESSIVE')}
+                            disabled={isProcessing}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-all ${contraPersonality === 'AGGRESSIVE'
+                                    ? 'bg-accent text-white border-2 border-accent font-extrabold shadow-lg shadow-accent/50 scale-105'
+                                    : 'bg-black/20 text-gray-400 border border-white/10 hover:bg-white/5 hover:border-white/20 font-normal opacity-60'
+                                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            title="Raven - Harsh and relentless"
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <Flame size={12} />
+                                <span>Raven</span>
+                            </div>
+                        </button>
                     </div>
                 </div>
 
