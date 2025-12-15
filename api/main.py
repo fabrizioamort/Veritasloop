@@ -172,6 +172,20 @@ async def websocket_endpoint(websocket: WebSocket):
                 payload["description"] = "PRO Agent searching for evidence"
             elif node_name == "contra_research":
                 payload["description"] = "CONTRA Agent finding contradictions"
+            elif node_name == "contra_node":
+                round_num = node_data.get('round_count', 0)
+                payload["description"] = f"Debate Round {round_num}/3 (CONTRA)"
+            elif node_name == "pro_node":
+                 # Round count isn't in pro_node output by default in my change, 
+                 # but we can infer or pass it. 
+                 # Wait, pro_turn returns {"messages": ...}, no round_count update.
+                 # So we need to look at state... but here we only have node_data.
+                 # Let's simple check if we can get it from node_data or just say PRO turn.
+                 # Correction: `pro_turn` does NOT return round_count.
+                 # To show round number, we might need to include it in pro_turn return or just leave it generic.
+                 # Let's update `pro_turn` to return round_count as well, it's safer.
+                 # For now, generic description.
+                payload["description"] = f"Debate Round (PRO)"
             elif node_name == "debate":
                 round_num = node_data.get('round_count', 0)
                 payload["description"] = f"Debate Round {round_num}/3"

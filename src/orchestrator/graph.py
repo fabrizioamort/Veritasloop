@@ -6,7 +6,7 @@ Defines the state machine for the multi-agent debate and verification process.
 
 from langgraph.graph import StateGraph, START, END
 from src.models.schemas import GraphState
-from src.orchestrator.debate import debate_round
+from src.orchestrator.debate import contra_turn, pro_turn
 from src.agents.pro_agent import ProAgent
 from src.agents.contra_agent import ContraAgent
 from src.agents.judge_agent import JudgeAgent
@@ -169,7 +169,11 @@ def get_app():
     workflow.add_node("extract", extract_claim)
     workflow.add_node("pro_research", pro_research)
     workflow.add_node("contra_research", contra_research)
-    workflow.add_node("debate", debate_round)
+    
+    # Split debate nodes
+    workflow.add_node("contra_node", contra_turn)
+    workflow.add_node("pro_node", pro_turn)
+    
     workflow.add_node("judge", judge_verdict)
 
     # Define the edges
@@ -177,13 +181,18 @@ def get_app():
     workflow.add_edge("extract", "pro_research")
     workflow.add_edge("pro_research", "contra_research")
 
-    workflow.add_edge("contra_research", "debate")
+    # Initial transition to debate loop (Pro speaks first in debate)
+    workflow.add_edge("contra_research", "pro_node")
+    
+    # Pro speaks first in round, then Contra
+    workflow.add_edge("pro_node", "contra_node")
 
+    # After Contra speaks (end of round), check if we continue or go to judge
     workflow.add_conditional_edges(
-        "debate",
+        "contra_node",
         should_continue,
         {
-            "continue": "debate",
+            "continue": "pro_node",
             "end": "judge",
         },
     )
@@ -195,14 +204,3 @@ def get_app():
 # For backwards compatibility or direct script usage:
 if __name__ == "__main__":
     app = get_app()
-
-# To run this graph, you would invoke it with an initial state:
-# from src.models.schemas import Claim, Entities
-# initial_state = {
-#     "claim": Claim(raw_input="Test", core_claim="Test", entities=Entities()),
-#     "messages": [],
-#     "pro_sources": [],
-#     "contra_sources": [],
-#     "round_count": 0,
-# }
-# app.invoke(initial_state)

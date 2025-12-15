@@ -17,6 +17,13 @@
 
 ## 📢 Latest Updates
 
+**Version 0.3.0 - December 2025**
+- 🎭 **Agent Personalities**: Select communication styles for PRO and CONTRA agents (Passive, Assertive, Aggressive)
+- 👥 **Named Agents**: Each personality has a unique name (Oliver, Marcus, Victor, Sophie, Diana, Raven)
+- 🎨 **Enhanced UI**: Visual personality selector with icons and real-time name display
+- 💬 **Dynamic Tone**: Agents adapt their language and communication style based on selected personality
+- ⚙️ **Configurable Debates**: Create unique debate dynamics by mixing different personalities
+
 **Version 0.2.0 - December 2025**
 - ✨ **New React Web UI**: Modern, professional single-page application with real-time WebSocket streaming
 - 🚀 **FastAPI Backend**: High-performance API server with WebSocket support for real-time communication
@@ -52,6 +59,22 @@
 
 This adversarial approach reduces confirmation bias, exposes conflicting evidence transparently, and produces nuanced verdicts in **five categories** rather than simple true/false labels.
 
+### Agent Personalities
+
+Each PRO and CONTRA agent can adopt one of three distinct communication styles, allowing you to customize the debate dynamics:
+
+**PRO Agent (Defender) Personalities:**
+- 😌 **Oliver (Passive)**: Cautious and tentative, uses phrases like "it seems", "perhaps", "possibly"
+- 💪 **Marcus (Assertive)**: Confident and persuasive, fact-based and balanced *(default)*
+- 🔥 **Victor (Aggressive)**: Forceful and confrontational, uses strong rhetoric and emotional appeals
+
+**CONTRA Agent (Skeptic) Personalities:**
+- 😌 **Sophie (Passive)**: Polite and diplomatic, gentle questioning and respectful skepticism
+- 💪 **Diana (Assertive)**: Professional and firm, thorough fact-checking *(default)*
+- 🔥 **Raven (Aggressive)**: Harsh and relentless, uncompromising criticism and fierce challenges
+
+The personality selection affects only the **tone and language style** of the agents' arguments, not their search strategies or evidence gathering. This allows for diverse debate dynamics, from polite academic discourse (Oliver vs Sophie) to intense confrontation (Victor vs Raven).
+
 ### Why VeritasLoop?
 
 Traditional fact-checking suffers from several limitations:
@@ -75,6 +98,7 @@ VeritasLoop addresses these through:
 ### Core Capabilities
 
 - **🎭 Adversarial Multi-Agent Architecture**: Three specialized agents (PRO, CONTRA, JUDGE) working through LangGraph state orchestration
+- **👥 Customizable Agent Personalities**: Choose from 3 communication styles per agent (Passive, Assertive, Aggressive) with unique names
 - **🔄 Dialectical Debate Process**: Up to 3 rounds of structured argumentation with rebuttals and defenses
 - **🎨 Nuanced Verdict System**: Five-category classification (True, False, Partially True, Missing Context, Cannot Verify)
 - **📚 Multi-Source Verification**:

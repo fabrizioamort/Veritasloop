@@ -5,6 +5,146 @@ This task list is designed to deliver an MVP of the VeritasLoop system. Tasks ar
 
 ---
 
+## 🎭 Phase 10: Agent Personality System (Version 0.3.0 - COMPLETED ✅)
+
+### Task 10.1: Personality Configuration System
+**Priority**: High | **Est. Time**: 3 hours | **Completed**: December 2025
+
+**Implementation**:
+- [x] Created `src/config/personalities.py` with centralized personality definitions
+- [x] Defined 6 unique agent names (Oliver, Marcus, Victor, Sophie, Diana, Raven)
+- [x] Created 6 distinct system prompts for each personality type
+- [x] Implemented helper functions for name and prompt retrieval
+- [x] Added Personality enum for type safety
+
+**Deliverable**: Complete personality configuration system ✅
+
+---
+
+### Task 10.2: Data Model Extensions
+**Priority**: High | **Est. Time**: 1 hour | **Completed**: December 2025
+
+**Implementation**:
+- [x] Extended `GraphState` TypedDict with `pro_personality` and `contra_personality` fields
+- [x] Updated schema documentation in `src/models/schemas.py`
+- [x] Added personality parameters to WebSocket request handling in `api/main.py`
+
+**Deliverable**: GraphState extended with personality support ✅
+
+---
+
+### Task 10.3: Agent Class Modifications
+**Priority**: Critical | **Est. Time**: 2 hours | **Completed**: December 2025
+
+**Implementation**:
+- [x] Modified `ProAgent.__init__()` to accept `personality` parameter
+- [x] Modified `ContraAgent.__init__()` to accept `personality` parameter
+- [x] Implemented dynamic prompt loading from personality config
+- [x] Added `agent_display_name` attribute for personality-based names
+- [x] Enhanced logging to track personality initialization
+
+**Deliverable**: Agents support personality configuration ✅
+
+---
+
+### Task 10.4: Orchestration Updates
+**Priority**: Critical | **Est. Time**: 1.5 hours | **Completed**: December 2025
+
+**Implementation**:
+- [x] Modified `graph.py` to create agents dynamically with personality from state
+- [x] Updated `pro_research` node to instantiate ProAgent with personality
+- [x] Updated `contra_research` node to instantiate ContraAgent with personality
+- [x] Enhanced logging to display agent display names and personalities
+
+**Deliverable**: Dynamic agent creation with personality support ✅
+
+---
+
+### Task 10.5: React UI - Personality Selector
+**Priority**: High | **Est. Time**: 4 hours | **Completed**: December 2025
+
+**Implementation**:
+- [x] Added personality state management in `App.jsx` (proPersonality, contraPersonality)
+- [x] Updated WebSocket message to include personality parameters
+- [x] Created visual personality selector in `ConfigPanel.jsx`
+- [x] Implemented icon-based button groups (Feather, Zap, Flame)
+- [x] Added Shield/Search icons for role identification
+- [x] Implemented visual feedback with:
+  - Bold text and extra-bold font for selected state
+  - Scale transformation (105%) for selected buttons
+  - Glow shadow effect on selected buttons
+  - 60% opacity dimming for unselected buttons
+- [x] Disabled controls during processing
+- [x] Set default to ASSERTIVE (Marcus vs Diana)
+- [x] Added hover tooltips with personality descriptions
+
+**Deliverable**: Full-featured personality selector UI ✅
+
+---
+
+### Task 10.6: Agent Name Display
+**Priority**: Medium | **Est. Time**: 1 hour | **Completed**: December 2025
+
+**Implementation**:
+- [x] Updated `AgentNode.jsx` to accept personality prop
+- [x] Added agent name mapping for personality-based display
+- [x] Implemented dynamic label construction showing agent names
+- [x] Added role subtitle ("PRO AGENT", "CONTRA AGENT")
+- [x] Integrated personality prop passing from App.jsx
+
+**Deliverable**: Dynamic agent name display based on personality ✅
+
+---
+
+### Task 10.7: Documentation Updates
+**Priority**: Medium | **Est. Time**: 2 hours | **Completed**: December 2025
+
+**Implementation**:
+- [x] Updated README.md with Version 0.3.0 announcement
+- [x] Added "Agent Personalities" section to README overview
+- [x] Updated Key Features section with personality feature
+- [x] Updated PLANNING.md with personality system details
+- [x] Added comprehensive personality tables and implementation details
+- [x] Created TASK.md section documenting all personality tasks
+
+**Deliverable**: Complete documentation for personality feature ✅
+
+---
+
+### Personality Feature Summary
+
+**Total Implementation Time**: ~15 hours
+**Files Created**: 1 (personalities.py)
+**Files Modified**: 9 (ConfigPanel.jsx, App.jsx, AgentNode.jsx, main.py, schemas.py, pro_agent.py, contra_agent.py, graph.py, documentation)
+
+**Agent Personalities Implemented**:
+
+| Agent | Personality | Name | Icon | Style |
+|-------|-------------|------|------|-------|
+| PRO | Passive | Oliver | 😌 | Cautious, tentative |
+| PRO | Assertive | Marcus | 💪 | Confident, persuasive (default) |
+| PRO | Aggressive | Victor | 🔥 | Forceful, confrontational |
+| CONTRA | Passive | Sophie | 😌 | Polite, diplomatic |
+| CONTRA | Assertive | Diana | 💪 | Professional, firm (default) |
+| CONTRA | Aggressive | Raven | 🔥 | Harsh, relentless |
+
+**Key Features**:
+- Personality affects only tone and language style
+- Search strategies and evidence gathering remain unchanged
+- Visual UI selector with real-time feedback
+- Dynamic prompt generation based on personality selection
+- Full integration with React UI and FastAPI backend
+
+**Usage Example**:
+```javascript
+// Default: Marcus (Assertive) vs Diana (Assertive)
+// User can select any combination, e.g.:
+// - Oliver (Passive) vs Raven (Aggressive) for contrasting debate styles
+// - Victor (Aggressive) vs Sophie (Passive) for dramatic tension
+```
+
+---
+
 ## 🏗️ Phase 0: Project Setup (Day 1)
 
 ### Task 0.1: Environment & Dependencies

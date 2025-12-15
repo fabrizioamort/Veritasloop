@@ -86,15 +86,33 @@ function App() {
 
     if (description) setStatusText(description.toUpperCase());
 
-    // Agent Animations
-    if (node === 'pro_research') {
+    // Agent Animations - Predictive State
+    // We set status for the NEXT node based on the one that just completed
+    if (node === 'initialize') {
+      setStatusText('EXTRACTING CLAIM...');
+    } else if (node === 'extract') {
+      // Next: PRO Research
       setProStatus('thinking');
       setContraStatus('idle');
-    } else if (node === 'contra_research') {
+    } else if (node === 'pro_research') {
+      // Next: CONTRA Research
       setProStatus('idle');
       setContraStatus('thinking');
+    } else if (node === 'contra_research') {
+      // Next: PRO Debate Turn (Round 1)
+      setProStatus('thinking');
+      setContraStatus('idle');
+    } else if (node === 'pro_node') {
+      // Next: CONTRA Debate Turn
+      setProStatus('idle');
+      setContraStatus('thinking');
+    } else if (node === 'contra_node') {
+      // Next: PRO Debate Turn (Round X) or Judge
+      // We assume debate continues for UI feedback
+      setProStatus('thinking');
+      setContraStatus('idle');
     } else if (node === 'debate') {
-      // Determine who is speaking based on last message
+      // Fallback or legacy
       if (data && data.messages) {
         const lastMsg = data.messages[data.messages.length - 1];
         if (lastMsg.agent === 'PRO') {
@@ -120,7 +138,8 @@ function App() {
       const msgs = data.messages.map(m => ({
         agent: m.agent || m.type, // Fallback
         content: m.content,
-        round: data.round_count || 1,
+        // Backend sends round_count. If it's 0 (research), keep 0. If >0, use it.
+        round: data.round_count !== undefined ? data.round_count : 1,
         sources: m.sources
       }));
 

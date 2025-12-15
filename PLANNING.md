@@ -23,6 +23,8 @@ VeritasLoop is an adversarial multi-agent system that verifies news authenticity
 - ✅ FastAPI backend with WebSocket streaming
 - ✅ Phoenix observability integration
 - ✅ Comprehensive logging and performance metrics
+- ✅ Agent personality system with 3 communication styles per agent
+- ✅ Named agents with personality-based identities (6 unique characters)
 
 ### Out of Scope (Future Versions)
 - ❌ Real-time video/audio verification
@@ -138,10 +140,46 @@ VeritasLoop is an adversarial multi-agent system that verifies news authenticity
 
 ## 4. Agent Specifications
 
+### 4.0 Agent Personality System (Version 0.3.0)
+
+**Overview**: Each PRO and CONTRA agent can adopt one of three communication styles, allowing users to customize debate dynamics while maintaining the same evidence-gathering capabilities.
+
+**PRO Agent Personalities**:
+
+| Personality | Name | Style | Example Language |
+|------------|------|-------|------------------|
+| **Passive** | Oliver | Cautious, tentative | "It seems...", "Perhaps...", "Possibly..." |
+| **Assertive** | Marcus | Confident, persuasive | "The evidence clearly shows...", "Facts support..." *(default)* |
+| **Aggressive** | Victor | Forceful, confrontational | "Absolutely true!", "Undeniable!", "Anyone can see..." |
+
+**CONTRA Agent Personalities**:
+
+| Personality | Name | Style | Example Language |
+|------------|------|-------|------------------|
+| **Passive** | Sophie | Polite, diplomatic | "I wonder if...", "Perhaps we should consider..." |
+| **Assertive** | Diana | Professional, firm | "The data contradicts...", "Research shows..." *(default)* |
+| **Aggressive** | Raven | Harsh, relentless | "Completely false!", "Pure manipulation!", "Let me expose..." |
+
+**Implementation**:
+- Personality selection affects only **tone and language style**
+- Search strategies, source reliability, and evidence gathering remain unchanged
+- Configured via React UI with visual selector (icons + names)
+- Stored in GraphState and passed to agents during initialization
+- Prompts dynamically loaded from `src/config/personalities.py`
+
+**Technical Files**:
+- `src/config/personalities.py` - Personality definitions and prompts
+- `frontend/src/components/ConfigPanel.jsx` - UI selector
+- `frontend/src/components/AgentNode.jsx` - Display personality-based names
+- `src/agents/pro_agent.py` - Dynamic prompt loading
+- `src/agents/contra_agent.py` - Dynamic prompt loading
+- `src/orchestrator/graph.py` - Agent creation with personality
+- `api/main.py` - WebSocket parameter handling
+
 ### 4.1 PRO Agent (The Defender)
 **Role**: Institutional Analyst defending the claim
 
-**Personality Traits**:
+**Base Personality Traits** (Modified by personality selection):
 - Formal, data-driven
 - Trusts official sources
 - Conservative in claims

@@ -19,66 +19,75 @@ logger = get_logger(__name__)
 # To avoid circular imports (since graph imports debate), we re-instantiate or use a singleton pattern.
 # For MVP simplicity, we re-instantiate.
 
-def debate_round(state: GraphState) -> GraphState:
+def pro_turn(state: GraphState) -> GraphState:
     """
-    Executes a single round of debate, where the CONTRA agent rebuts the PRO's
-    last argument, and the PRO agent defends against the rebuttal.
+    Executes PRO agent's turn in the debate.
+    Increments round count (start of new round) and produces argument/defense.
     """
-    round_num = state['round_count'] + 1
-    logger.info(f"Starting debate round {round_num}")
+    # Increment round count at the start of PRO's turn (start of a new round cycle)
+    new_round = state['round_count'] + 1
+    logger.info(f"Starting debate round {new_round} - PRO Turn")
 
-    with log_performance(f"debate_round_{round_num}", logger):
-        # Lazy init to avoid top-level cost/issues
+    with log_performance(f"pro_turn_round_{new_round}", logger):
+        # Initialize resources
         llm = get_llm()
         tool_manager = ToolManager()
-        pro_agent = ProAgent(llm, tool_manager)
-        contra_agent = ContraAgent(llm, tool_manager)
+        
+        # Get personality from state
+        personality = state.get('pro_personality', 'ASSERTIVE')
+        pro_agent = ProAgent(llm, tool_manager, personality=personality)
 
-        # 1. CONTRA Agent Rebuttal
-        # In a debate, CONTRA responds to what PRO just said (or general claim if first round,
-        # but strictly this node runs after initial research where both spoke).
-        # We assume 'messages' has the history.
-
-        logger.info(f"CONTRA agent preparing rebuttal (round {round_num})")
-        with log_performance(f"contra_rebuttal_round_{round_num}", logger):
-            contra_message = contra_agent.think(state)
-            logger.debug(
-                f"CONTRA rebuttal complete",
-                extra={
-                    "sources": len(contra_message.sources),
-                    "confidence": contra_message.confidence
-                }
-            )
-
-        # Note: State is not updated yet, so Pro agent sees old state + what we might pass manually?
-        # In this logic, Pro responds to Contra.
-        # But if we don't update state, Pro.think(state) won't see Contra's message in state['messages'].
-        # We must manually append strictly for the Pro agent's context, OR rely on internal logic.
-        # To be clean, we can create a temporary state or just pass the message.
-        # But ProAgent.think takes `state`.
-        # Let's create a temporary copy of messages for Pro.
-
-        current_messages = list(state['messages'])
-        current_messages.append(contra_message)
-        temp_state = state.copy()
-        temp_state['messages'] = current_messages
-
-        # 2. PRO Agent Defense
-        # PRO responds to CONTRA's latest rebuttal
-        logger.info(f"PRO agent preparing defense (round {round_num})")
-        with log_performance(f"pro_defense_round_{round_num}", logger):
-            pro_message = pro_agent.think(temp_state)
-            logger.debug(
-                f"PRO defense complete",
-                extra={
-                    "sources": len(pro_message.sources),
-                    "confidence": pro_message.confidence
-                }
-            )
-
-        logger.info(f"Debate round {round_num} complete")
+        logger.info(f"PRO agent preparing argument (round {new_round})")
+        
+        # Calculate argument
+        message = pro_agent.think(state)
+        
+        logger.debug(
+            f"PRO argument complete",
+            extra={
+                "sources": len(message.sources),
+                "confidence": message.confidence
+            }
+        )
 
         return {
-            "messages": [pro_message, contra_message],
-            "round_count": state['round_count'] + 1
+            "messages": [message],
+            "round_count": new_round
+        }
+
+def contra_turn(state: GraphState) -> GraphState:
+    """
+    Executes CONTRA agent's turn in the debate.
+    CONTRA rebuts PRO's argument.
+    """
+    round_num = state['round_count']
+    logger.info(f"Continuing debate round {round_num} - CONTRA Turn")
+
+    with log_performance(f"contra_turn_round_{round_num}", logger):
+        # Initialize resources
+        llm = get_llm()
+        tool_manager = ToolManager()
+        
+        # Get personality from state
+        personality = state.get('contra_personality', 'ASSERTIVE')
+        contra_agent = ContraAgent(llm, tool_manager, personality=personality)
+
+        logger.info(f"CONTRA agent preparing rebuttal (round {round_num})")
+        
+        # Calculate rebuttal
+        # Note: Pro's message was just added to state['messages'] by the previous node,
+        # so contra_agent.think(state) will see it automatically.
+        message = contra_agent.think(state)
+        
+        logger.debug(
+            f"CONTRA rebuttal complete",
+            extra={
+                "sources": len(message.sources),
+                "confidence": message.confidence
+            }
+        )
+
+        # We do NOT increment round count here, as CONTRA finishes the round started by PRO
+        return {
+            "messages": [message]
         }
