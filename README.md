@@ -179,7 +179,26 @@ uv run python -m src.cli --input "..." --output results.json
 uv run python -m src.cli --input "..." --trace --verbose
 ```
 
-### Example Output
+---
+
+## ⚙️ Configuration
+
+Before running the application, you need to configure your API keys.
+
+1.  Copy the example environment file:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Edit the new `.env` file and add your secret keys.
+
+> **⚠️ SECURITY WARNING**
+> The `.env` file contains your secret API keys. **NEVER** commit this file to Git or share it publicly. The `.gitignore` file is already configured to ignore it, but you must ensure it remains private.
+
+See the `.env.example` file for a full list of available options.
+
+---
+
+## Example Output
 
 ```
 ═════════════════════════════════════════════════════════════════

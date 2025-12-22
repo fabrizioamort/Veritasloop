@@ -50,6 +50,9 @@ Copy the example environment file and add your API keys:
 cp .env.example .env
 ```
 
+> **⚠️ SECURITY WARNING**
+> The `.env` file contains your secret API keys. **NEVER** commit this file to Git or share it publicly. The `.gitignore` file is already configured to ignore it, but you must ensure it remains private.
+
 Edit `.env` and add at minimum:
 ```bash
 # Required: At least one LLM provider
