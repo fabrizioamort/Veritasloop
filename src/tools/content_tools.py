@@ -4,10 +4,14 @@ the reliability of the sources.
 """
 from typing import Dict, Any, List
 from urllib.parse import urlparse
+import logging
 
 import requests
 from bs4 import BeautifulSoup
 from newspaper import Article, ArticleException
+from src.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 def fetch_article(url: str) -> Dict[str, Any]:
     """
@@ -35,14 +39,19 @@ def fetch_article(url: str) -> Dict[str, Any]:
             "publish_date": article.publish_date,
         }
     except ArticleException:
-        print(f"Newspaper3k failed for {url}. Falling back to BeautifulSoup.")
+        logger.warning(f"Newspaper3k failed for {url}. Falling back to BeautifulSoup.")
         try:
-            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            response = requests.get(
+                url,
+                headers={'User-Agent': 'Mozilla/5.0'},
+                timeout=settings.request_timeout,
+                allow_redirects=False
+            )
             response.raise_for_status()
             soup = BeautifulSoup(response.content, 'html.parser')
-            
+
             title = soup.find('title').get_text() if soup.find('title') else ''
-            
+
             # A simple heuristic to get the main text content
             paragraphs = soup.find_all('p')
             text = '\n'.join([p.get_text() for p in paragraphs])
@@ -53,8 +62,11 @@ def fetch_article(url: str) -> Dict[str, Any]:
                 "authors": [],
                 "publish_date": None,
             }
+        except requests.exceptions.Timeout:
+            logger.error(f"Fetch article timed out after {settings.request_timeout}s for URL: {url}")
+            return {}
         except requests.RequestException as e:
-            print(f"Could not fetch URL {url}: {e}")
+            logger.error(f"Could not fetch URL {url}: {e}")
             return {}
 
 def assess_source_reliability(url: str) -> str:

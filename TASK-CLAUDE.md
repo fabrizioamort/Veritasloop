@@ -79,42 +79,42 @@ This task list is derived from the **VeritasLoop Production Readiness Improvemen
 ## 🟡 Phase 2: Configuration Management (Week 2-3)
 
 ### Task 2.1: Centralized Backend Configuration
-**Priority**: High | **Est. Time**: 4 hours
+**Priority**: High | **Est. Time**: 4 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] Create a new file `src/config/settings.py` using `pydantic-settings`.
-- [ ] Define a `Settings` class that inherits from `BaseSettings` to manage all environment variables (API hosts, ports, Phoenix config, CORS origins, etc.).
-- [ ] Configure it to load variables from a `.env` file.
-- [ ] Refactor `api/main.py` and any other relevant files to import and use the `settings` object instead of hardcoded values or direct `os.getenv` calls.
-- [ ] Update `.env.example` with all new configuration variables.
+- [x] Create a new file `src/config/settings.py` using `pydantic-settings`.
+- [x] Define a `Settings` class that inherits from `BaseSettings` to manage all environment variables (API hosts, ports, Phoenix config, CORS origins, etc.).
+- [x] Configure it to load variables from a `.env` file.
+- [x] Refactor `api/main.py` and any other relevant files to import and use the `settings` object instead of hardcoded values or direct `os.getenv` calls.
+- [x] Update `.env.example` with all new configuration variables.
 
-**Files Affected**: `src/config/settings.py` (new), `api/main.py`, `.env.example`
+**Files Affected**: `src/config/settings.py` (new), `api/main.py`, `.env.example`, `requirements.txt`
 
 ---
 
 ### Task 2.2: Frontend Environment Configuration
-**Priority**: High | **Est. Time**: 2 hours
+**Priority**: High | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] In `frontend/src/App.jsx`, replace the hardcoded `API_URL` with `import.meta.env.VITE_API_URL`.
-- [ ] Provide a fallback for local development (e.g., `|| 'ws://localhost:8000/ws/verify'`).
-- [ ] Create `frontend/.env.example` with `VITE_API_URL` and `VITE_ENVIRONMENT`.
-- [ ] Create `frontend/.env.development` and `frontend/.env.production` with appropriate values for the API URL.
-- [ ] Add `frontend/.env*` files to the main `.gitignore` (excluding `.env.example`).
+- [x] In `frontend/src/App.jsx`, replace the hardcoded `API_URL` with `import.meta.env.VITE_API_URL`.
+- [x] Provide a fallback for local development (e.g., `|| 'ws://localhost:8000/ws/verify'`).
+- [x] Create `frontend/.env.example` with `VITE_API_URL` and `VITE_ENVIRONMENT`.
+- [x] Create `frontend/.env.development` and `frontend/.env.production` with appropriate values for the API URL.
+- [x] Add `frontend/.env*` files to the main `.gitignore` (excluding `.env.example`).
 
 **Files Affected**: `frontend/src/App.jsx`, `frontend/.env.example` (new), `frontend/.env.development` (new), `frontend/.env.production` (new), `.gitignore`
 
 ---
 
 ### Task 2.3: Environment Variable Validation on Startup
-**Priority**: Medium | **Est. Time**: 2 hours
+**Priority**: Medium | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] Create a new file `src/config/env_validator.py`.
-- [ ] Implement a function `validate_required_env_vars()` that checks for the presence of critical keys (`OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`).
-- [ ] If a required key is missing, print an error and exit the application (`sys.exit(1)`).
-- [ ] The function should also check for optional keys (`NEWS_API_KEY`, etc.) and print a warning if they are missing.
-- [ ] In `api/main.py`, create a startup event handler (`@app.on_event("startup")`) and call the validation function.
+- [x] Create a new file `src/config/env_validator.py`.
+- [x] Implement a function `validate_required_env_vars()` that checks for the presence of critical keys (`OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`).
+- [x] If a required key is missing, print an error and exit the application (`sys.exit(1)`).
+- [x] The function should also check for optional keys (`NEWS_API_KEY`, etc.) and print a warning if they are missing.
+- [x] In `api/main.py`, create a startup event handler (`@app.on_event("startup")`) and call the validation function.
 
 **Files Affected**: `src/config/env_validator.py` (new), `api/main.py`
 
@@ -123,66 +123,66 @@ This task list is derived from the **VeritasLoop Production Readiness Improvemen
 ## 🟡 Phase 3: Error Handling & Stability (Week 3-4)
 
 ### Task 3.1: Add HTTP Request Timeouts
-**Priority**: High | **Est. Time**: 2 hours
+**Priority**: High | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] Add a `REQUEST_TIMEOUT` variable to the `src/config/settings.py` file (e.g., 10 seconds).
-- [ ] Update all `requests.get()` and `requests.post()` calls in the toolset (`src/tools/*.py`) to include `timeout=settings.request_timeout`.
-- [ ] As a security best practice, also add `allow_redirects=False` to these requests to prevent redirect attacks.
-- [ ] Ensure that `requests.exceptions.Timeout` is handled gracefully.
+- [x] Add a `REQUEST_TIMEOUT` variable to the `src/config/settings.py` file (e.g., 10 seconds).
+- [x] Update all `requests.get()` and `requests.post()` calls in the toolset (`src/tools/*.py`) to include `timeout=settings.request_timeout`.
+- [x] As a security best practice, also add `allow_redirects=False` to these requests to prevent redirect attacks.
+- [x] Ensure that `requests.exceptions.Timeout` is handled gracefully.
 
-**Files Affected**: `src/config/settings.py`, `src/tools/search_tools.py`, `src/tools/content_tools.py`, `src/tools/news_api.py`
+**Files Affected**: `src/config/settings.py`, `src/tools/search_tools.py`, `src/tools/content_tools.py`
 
 ---
 
 ### Task 3.2: Implement LLM Error Handling
-**Priority**: High | **Est. Time**: 2 hours
+**Priority**: High | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] In `src/agents/pro_agent.py` and `src/agents/contra_agent.py`, wrap all `self.llm.invoke()` calls in a `try...except` block.
-- [ ] On exception, log the error and create a fallback `DebateMessage` with a user-friendly error content (e.g., "Unable to generate argument...") and set `confidence` to 0.
-- [ ] Ensure the agent's failure does not crash the entire verification process.
+- [x] In `src/agents/pro_agent.py` and `src/agents/contra_agent.py`, wrap all `self.llm.invoke()` calls in a `try...except` block.
+- [x] On exception, log the error and create a fallback `DebateMessage` with a user-friendly error content (e.g., "Unable to generate argument...") and set `confidence` to 0.
+- [x] Ensure the agent's failure does not crash the entire verification process.
 
 **Files Affected**: `src/agents/pro_agent.py`, `src/agents/contra_agent.py`
 
 ---
 
 ### Task 3.3: Add Frontend Error Boundary
-**Priority**: Medium | **Est. Time**: 2 hours
+**Priority**: Medium | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] Create a new React component `frontend/src/components/ErrorBoundary.jsx`.
-- [ ] Implement a class component with `getDerivedStateFromError` and `componentDidCatch` to handle rendering errors.
-- [ ] The error boundary should render a fallback UI with a "Something went wrong" message and a button to reload the page.
-- [ ] In `frontend/src/main.jsx`, wrap the main `<App />` component with `<ErrorBoundary>`.
+- [x] Create a new React component `frontend/src/components/ErrorBoundary.jsx`.
+- [x] Implement a class component with `getDerivedStateFromError` and `componentDidCatch` to handle rendering errors.
+- [x] The error boundary should render a fallback UI with a "Something went wrong" message and a button to reload the page.
+- [x] In `frontend/src/main.jsx`, wrap the main `<App />` component with `<ErrorBoundary>`.
 
 **Files Affected**: `frontend/src/components/ErrorBoundary.jsx` (new), `frontend/src/main.jsx`
 
 ---
 
 ### Task 3.4: Implement WebSocket Reconnection Logic
-**Priority**: Medium | **Est. Time**: 3 hours
+**Priority**: Medium | **Est. Time**: 3 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] In `frontend/src/App.jsx`, modify the `startVerification` function to include reconnection logic.
-- [ ] Create a `connectWebSocket` function that can be called recursively on failure.
-- [ ] Use a retry counter (`retryCount`) and a maximum number of retries (`MAX_RETRIES`).
-- [ ] On `socket.onerror`, increment the counter and use `setTimeout` to attempt reconnection after a delay (`RETRY_DELAY`).
-- [ ] Update the UI to inform the user about the reconnection attempt (e.g., "Reconnecting... (1/3)").
-- [ ] If all retries fail, show a permanent "Connection Failed" message.
+- [x] In `frontend/src/App.jsx`, modify the `startVerification` function to include reconnection logic.
+- [x] Create a `connectWebSocket` function that can be called recursively on failure.
+- [x] Use a retry counter (`retryCount`) and a maximum number of retries (`MAX_RETRIES`).
+- [x] On `socket.onerror`, increment the counter and use `setTimeout` to attempt reconnection after a delay (`RETRY_DELAY`).
+- [x] Update the UI to inform the user about the reconnection attempt (e.g., "Reconnecting... (1/3)").
+- [x] If all retries fail, show a permanent "Connection Failed" message.
 
 **Files Affected**: `frontend/src/App.jsx`
 
 ---
 
 ### Task 3.5: Implement Cache Size Limits
-**Priority**: Medium | **Est. Time**: 2 hours
+**Priority**: Medium | **Est. Time**: 2 hours | **Status**: ✅ COMPLETED
 
 **Implementation**:
-- [ ] In `src/utils/tool_manager.py`, change the cache dictionaries (`url_cache`, `search_cache`) to `collections.OrderedDict`.
-- [ ] Define a `MAX_CACHE_SIZE` constant (e.g., 1000).
-- [ ] Before adding a new item to a cache, check if the cache size has reached the limit.
-- [ ] If the limit is reached, use `cache.popitem(last=False)` to remove the oldest item (LRU behavior).
+- [x] In `src/utils/tool_manager.py`, change the cache dictionaries (`url_cache`, `search_cache`) to `collections.OrderedDict`.
+- [x] Define a `MAX_CACHE_SIZE` constant (e.g., 1000).
+- [x] Before adding a new item to a cache, check if the cache size has reached the limit.
+- [x] If the limit is reached, use `cache.popitem(last=False)` to remove the oldest item (LRU behavior).
 
 **Files Affected**: `src/utils/tool_manager.py`
 

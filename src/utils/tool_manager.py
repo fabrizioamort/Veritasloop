@@ -1,6 +1,7 @@
 import hashlib
 import time
 from typing import Dict, List, Any
+from collections import OrderedDict
 
 from src.tools.search_tools import search
 from src.utils.logger import get_logger, get_metrics
@@ -12,10 +13,13 @@ class ToolManager:
     Manages tool usage, including web searches and URL fetching, with integrated caching.
 
     Attributes:
-        url_cache (dict): A cache for storing the content of fetched URLs.
-        search_cache (dict): A cache for storing the results of web searches.
+        url_cache (OrderedDict): A cache for storing the content of fetched URLs (LRU).
+        search_cache (OrderedDict): A cache for storing the results of web searches (LRU).
         ttl (int): The time-to-live for cache entries in seconds.
+        max_cache_size (int): Maximum number of entries per cache (default: 1000).
     """
+
+    MAX_CACHE_SIZE = 1000  # Maximum cache entries
 
     def __init__(self, ttl: int = 3600):
         """
@@ -24,9 +28,28 @@ class ToolManager:
         Args:
             ttl (int): The time-to-live for cache entries in seconds. Defaults to 3600 (1 hour).
         """
-        self.url_cache: Dict[str, Dict[str, Any]] = {}
-        self.search_cache: Dict[str, Dict[str, Any]] = {}
+        self.url_cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self.search_cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
         self.ttl = ttl
+
+    def _add_to_cache(self, cache: OrderedDict, key: str, value: Any) -> None:
+        """
+        Add an item to cache with size limit enforcement (LRU eviction).
+
+        Args:
+            cache: The cache OrderedDict to add to
+            key: The cache key
+            value: The value to cache
+        """
+        # Check if cache is full
+        if len(cache) >= self.MAX_CACHE_SIZE:
+            # Remove oldest entry (FIFO/LRU)
+            evicted_key = next(iter(cache))
+            cache.pop(evicted_key)
+            logger.debug(f"Cache full, evicted oldest entry: {evicted_key[:50]}...")
+
+        # Add new entry
+        cache[key] = value
 
     def get_url(self, url: str, agent: str) -> str:
         """
@@ -61,7 +84,7 @@ class ToolManager:
 
         # Placeholder for actual URL fetching logic
         content = f"Content of {url} fetched by {agent}"
-        self.url_cache[url] = {'content': content, 'timestamp': timestamp}
+        self._add_to_cache(self.url_cache, url, {'content': content, 'timestamp': timestamp})
         return content
 
     def search_web(self, query: str, tool: str) -> List[Dict]:
@@ -130,7 +153,7 @@ class ToolManager:
 
             results = []
 
-        self.search_cache[query_hash] = {'results': results, 'timestamp': timestamp}
+        self._add_to_cache(self.search_cache, query_hash, {'results': results, 'timestamp': timestamp})
         return results
 
     def clear_cache(self):

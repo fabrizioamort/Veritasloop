@@ -139,13 +139,18 @@ class ContraAgent(BaseAgent):
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=user_prompt)
         ]
-        
-        response = self.llm.invoke(messages_payload)
-        content = response.content
-        
-        # Calculate a simple confidence score (mock logic)
-        # In a real system, the LLM would output this
-        confidence = 70.0 if top_sources else 30.0
+
+        # Call LLM with error handling
+        try:
+            response = self.llm.invoke(messages_payload)
+            content = response.content
+            # Calculate a simple confidence score (mock logic)
+            # In a real system, the LLM would output this
+            confidence = 70.0 if top_sources else 30.0
+        except Exception as e:
+            self.logger.error(f"LLM call failed in CONTRA agent: {e}")
+            content = "Unable to generate counterargument due to technical difficulties. The system is experiencing issues communicating with the language model."
+            confidence = 0.0
         
         return DebateMessage(
             round=state['round_count'] + 1,

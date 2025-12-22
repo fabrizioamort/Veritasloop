@@ -1,7 +1,11 @@
 import os
 import requests
+import logging
 from typing import List, Dict, Any
 from bs4 import BeautifulSoup
+from src.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
     """
@@ -17,7 +21,7 @@ def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
     """
     api_key = os.getenv("BRAVE_SEARCH_API_KEY")
     if not api_key:
-        print("Warning: BRAVE_SEARCH_API_KEY not found. Skipping Brave search.")
+        logger.warning("BRAVE_SEARCH_API_KEY not found. Skipping Brave search.")
         return []
 
     url = "https://api.search.brave.com/res/v1/web/search"
@@ -28,7 +32,13 @@ def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
     params = {"q": query, "count": count}
 
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=settings.request_timeout,
+            allow_redirects=False
+        )
         response.raise_for_status()
 
         data = response.json()
@@ -47,12 +57,15 @@ def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
-            print("Brave Search API rate limit exceeded.")
+            logger.warning("Brave Search API rate limit exceeded.")
         else:
-            print(f"HTTP error during Brave search: {e}")
+            logger.error(f"HTTP error during Brave search: {e}")
+        return []
+    except requests.exceptions.Timeout:
+        logger.error(f"Brave search timed out after {settings.request_timeout}s")
         return []
     except requests.exceptions.RequestException as e:
-        print(f"Error during Brave search: {e}")
+        logger.error(f"Error during Brave search: {e}")
         return []
 
 def duckduckgo_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
@@ -74,7 +87,13 @@ def duckduckgo_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
     }
 
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=settings.request_timeout,
+            allow_redirects=False
+        )
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -94,8 +113,11 @@ def duckduckgo_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
                 )
         return results
 
+    except requests.exceptions.Timeout:
+        logger.error(f"DuckDuckGo search timed out after {settings.request_timeout}s")
+        return []
     except requests.exceptions.RequestException as e:
-        print(f"Error during DuckDuckGo search: {e}")
+        logger.error(f"Error during DuckDuckGo search: {e}")
         return []
 
 def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
@@ -114,7 +136,7 @@ def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
     search_engine_id = os.getenv("GOOGLE_PSE_CX")
 
     if not api_key or not search_engine_id:
-        print("Warning: GOOGLE_PSE_API_KEY or GOOGLE_PSE_CX not found. Skipping Google PSE search.")
+        logger.warning("GOOGLE_PSE_API_KEY or GOOGLE_PSE_CX not found. Skipping Google PSE search.")
         return []
 
     url = "https://www.googleapis.com/customsearch/v1"
@@ -126,7 +148,12 @@ def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
     }
 
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(
+            url,
+            params=params,
+            timeout=settings.request_timeout,
+            allow_redirects=False
+        )
         response.raise_for_status()
 
         data = response.json()
@@ -145,12 +172,15 @@ def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
-            print("Google PSE API rate limit exceeded.")
+            logger.warning("Google PSE API rate limit exceeded.")
         else:
-            print(f"HTTP error during Google PSE search: {e}")
+            logger.error(f"HTTP error during Google PSE search: {e}")
+        return []
+    except requests.exceptions.Timeout:
+        logger.error(f"Google PSE search timed out after {settings.request_timeout}s")
         return []
     except requests.exceptions.RequestException as e:
-        print(f"Error during Google PSE search: {e}")
+        logger.error(f"Error during Google PSE search: {e}")
         return []
 
 def search(query: str, tool: str = "brave", count: int = 10) -> List[Dict[str, Any]]:

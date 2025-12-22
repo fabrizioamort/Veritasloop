@@ -65,13 +65,18 @@ Speak naturally, as if you are in a live debate. Don't simply list facts; weave 
 IMPORTANT: Your output must be in {language}.
 """
         
-        # 3. Call LLM
-        response = self.llm.invoke([
-            SystemMessage(content=self.system_prompt),
-            HumanMessage(content=prompt)
-        ])
-        
-        content = response.content
+        # 3. Call LLM with error handling
+        try:
+            response = self.llm.invoke([
+                SystemMessage(content=self.system_prompt),
+                HumanMessage(content=prompt)
+            ])
+            content = response.content
+            confidence = 0.7  # Default confidence on success
+        except Exception as e:
+            self.logger.error(f"LLM call failed in PRO agent: {e}")
+            content = "Unable to generate argument due to technical difficulties. The system is experiencing issues communicating with the language model."
+            confidence = 0.0
 
         # 4. Parse Sources (Simple heuristic for MVP)
         sources = []
@@ -95,7 +100,7 @@ IMPORTANT: Your output must be in {language}.
             message_type=msg_type,
             content=str(content),
             sources=sources,
-            confidence=85.0 # Placeholder confidence, ideally derived from LLM
+            confidence=confidence if confidence == 0.0 else 85.0  # 0 on error, 85 on success
         )
 
     def search(self, query: str, strategy: str, max_searches: int = -1) -> List[Dict]:

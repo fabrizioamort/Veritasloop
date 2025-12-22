@@ -13,6 +13,10 @@ from pydantic import BaseModel, Field, ValidationError
 # Load environment variables from .env file
 load_dotenv()
 
+# Import centralized settings and validation
+from src.config.settings import settings
+from src.config.env_validator import validate_all
+
 # Pydantic model for WebSocket request validation
 class VerificationRequest(BaseModel):
     input: str = Field(..., min_length=1, max_length=10000)
@@ -33,11 +37,11 @@ from api.server_utils import serialize_for_json, sanitize_error_message
 logger = get_logger("api")
 
 def check_phoenix_running() -> bool:
-    """Check if Phoenix server is already running on port 6006."""
+    """Check if Phoenix server is already running."""
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-        result = sock.connect_ex(('localhost', 6006))
+        result = sock.connect_ex((settings.phoenix_host, settings.phoenix_port))
         sock.close()
         return result == 0
     except Exception:
@@ -45,8 +49,12 @@ def check_phoenix_running() -> bool:
 
 def start_phoenix_server():
     """Start Phoenix server with persistent storage if not already running."""
+    if not settings.phoenix_enabled:
+        logger.info("Phoenix tracing is disabled (PHOENIX_ENABLED=false)")
+        return False
+
     if check_phoenix_running():
-        logger.info("Phoenix server already running at http://localhost:6006")
+        logger.info(f"Phoenix server already running at {settings.phoenix_url}")
         return True
 
     try:
@@ -65,7 +73,7 @@ def start_phoenix_server():
             database_url=f"sqlite:///{db_path.absolute()}"
         )
 
-        logger.info(f"Phoenix server started at http://localhost:6006 with persistent storage at {db_path}")
+        logger.info(f"Phoenix server started at {settings.phoenix_url} with persistent storage at {db_path}")
         return True
     except ImportError:
         logger.warning("Phoenix not available. Install with: pip install arize-phoenix openinference-instrumentation-langchain")
@@ -78,22 +86,26 @@ def start_phoenix_server():
 phoenix_started = start_phoenix_server()
 if phoenix_started:
     enable_tracing()
-    logger.info("Phoenix tracing enabled for API server - traces available at http://localhost:6006")
+    logger.info(f"Phoenix tracing enabled for API server - traces available at {settings.phoenix_url}")
 else:
     logger.warning("Phoenix tracing not enabled - Phoenix server failed to start")
 
 app = FastAPI(title="VeritasLoop API")
 
-# Get allowed origins from environment variable
-# Defaults to the React development server's address if not set
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+@app.on_event("startup")
+async def startup_event():
+    """Validate environment variables on application startup."""
+    logger.info("Running environment validation...")
+    validate_all()
+    logger.info("Environment validation completed - application ready to start")
 
-logger.info(f"Configuring CORS with allowed origins: {ALLOWED_ORIGINS}")
+# Configure CORS using settings
+logger.info(f"Configuring CORS with allowed origins: {settings.allowed_origins_list}")
 
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
     allow_methods=["GET", "POST"],  # Restrict to only necessary methods
     allow_headers=["Content-Type"],   # Restrict to only necessary headers
