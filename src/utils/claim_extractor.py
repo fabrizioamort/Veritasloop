@@ -2,6 +2,7 @@ import os
 import logging
 from typing import Optional
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 from langchain_core.prompts import ChatPromptTemplate
 from newspaper import Article, ArticleException
@@ -26,6 +27,19 @@ from src.models.schemas import Claim, ClaimCategory, Entities
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+def validate_url(url: str) -> bool:
+    """Validate URL is well-formed and uses safe protocols."""
+    try:
+        result = urlparse(url)
+        # Only allow http/https, must have domain, and reasonable length
+        return all([
+            result.scheme in ('http', 'https'),
+            result.netloc,
+            len(url) < 2048
+        ])
+    except:
+        return False
 
 def get_llm():
     """
@@ -116,6 +130,9 @@ def extract_from_url(url: str) -> Claim:
     Returns:
         Claim: The extracted structured claim.
     """
+    if not validate_url(url):
+        raise ValueError("Invalid URL format or protocol. Please provide a valid http/https URL.")
+
     try:
         article = Article(url)
         article.download()

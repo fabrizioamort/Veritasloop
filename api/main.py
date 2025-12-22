@@ -2,20 +2,32 @@
 import json
 import logging
 import socket
+import os
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field, ValidationError
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Pydantic model for WebSocket request validation
+class VerificationRequest(BaseModel):
+    input: str = Field(..., min_length=1, max_length=10000)
+    type: str = Field(default="Text", pattern="^(Text|URL)$")
+    max_iterations: int = Field(default=3, ge=1, le=10)
+    max_searches: int = Field(default=-1, ge=-1, le=100)
+    language: str = Field(default="Italian", pattern="^(Italian|English)$")
+    proPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
+    contraPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
 
 from src.orchestrator.graph import get_app, enable_tracing
 from src.models.schemas import Claim, Entities, GraphState
 from src.utils.claim_extractor import extract_from_url
 from src.utils.logger import get_logger
-from api.server_utils import serialize_for_json
+from api.server_utils import serialize_for_json, sanitize_error_message
 
 # Configure logger
 logger = get_logger("api")
@@ -72,13 +84,20 @@ else:
 
 app = FastAPI(title="VeritasLoop API")
 
+# Get allowed origins from environment variable
+# Defaults to the React development server's address if not set
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+
+logger.info(f"Configuring CORS with allowed origins: {ALLOWED_ORIGINS}")
+
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development, allow all
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],  # Restrict to only necessary methods
+    allow_headers=["Content-Type"],   # Restrict to only necessary headers
+    max_age=3600,
 )
 
 @app.get("/")
@@ -91,19 +110,22 @@ async def websocket_endpoint(websocket: WebSocket):
     logger.info("WebSocket connection established")
 
     try:
-        # Wait for initialization message
+        # Wait for initialization message and validate it
         data = await websocket.receive_text()
-        request_data = json.loads(data)
+        
+        try:
+            request = VerificationRequest(**json.loads(data))
+        except ValidationError as e:
+            # Use the sanitizer, which logs the detailed error
+            safe_message = sanitize_error_message(e, "Invalid request: please check your parameters.")
+            await websocket.send_json({
+                "type": "error",
+                "message": safe_message
+            })
+            await websocket.close(code=4000) # Custom close code for validation error
+            return
 
-        user_input = request_data.get("input")
-        input_type = request_data.get("type", "Text")
-        max_iterations = request_data.get("max_iterations", 3)
-        max_searches = request_data.get("max_searches", -1)
-        language = request_data.get("language", "Italian")
-        pro_personality = request_data.get("proPersonality", "ASSERTIVE")
-        contra_personality = request_data.get("contraPersonality", "ASSERTIVE")
-
-        logger.info(f"Received verification request: {input_type} (max_iterations={max_iterations}, max_searches={max_searches}, pro={pro_personality}, contra={contra_personality})")
+        logger.info(f"Received valid verification request: {request.type} (max_iterations={request.max_iterations}, max_searches={request.max_searches}, pro={request.proPersonality}, contra={request.contraPersonality})")
 
         # 1. Extract Claim
         await websocket.send_json({
@@ -112,20 +134,19 @@ async def websocket_endpoint(websocket: WebSocket):
             "node": "initialize"
         })
 
-        if input_type == "URL":
+        if request.type == "URL":
             try:
-                claim = extract_from_url(user_input)
+                claim = extract_from_url(request.input)
             except Exception as e:
-                logger.error(f"Extraction failed: {e}")
                 await websocket.send_json({
                     "type": "error",
-                    "message": f"Failed to extract content: {str(e)}"
+                    "message": sanitize_error_message(e, "Failed to process the provided URL.")
                 })
                 return
         else:
             claim = Claim(
-                raw_input=user_input,
-                core_claim=user_input,  # Will be refined by extraction agent if needed
+                raw_input=request.input,
+                core_claim=request.input,  # Will be refined by extraction agent if needed
                 entities=Entities()
             )
 
@@ -136,11 +157,11 @@ async def websocket_endpoint(websocket: WebSocket):
             "pro_sources": [],
             "contra_sources": [],
             "round_count": 0,
-            "max_iterations": max_iterations,
-            "max_searches": max_searches,
-            "language": language,
-            "pro_personality": pro_personality,
-            "contra_personality": contra_personality
+            "max_iterations": request.max_iterations,
+            "max_searches": request.max_searches,
+            "language": request.language,
+            "pro_personality": request.proPersonality,
+            "contra_personality": request.contraPersonality
         }
 
         # 3. Stream from LangGraph
@@ -176,15 +197,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 round_num = node_data.get('round_count', 0)
                 payload["description"] = f"Debate Round {round_num}/3 (CONTRA)"
             elif node_name == "pro_node":
-                 # Round count isn't in pro_node output by default in my change, 
-                 # but we can infer or pass it. 
-                 # Wait, pro_turn returns {"messages": ...}, no round_count update.
-                 # So we need to look at state... but here we only have node_data.
-                 # Let's simple check if we can get it from node_data or just say PRO turn.
-                 # Correction: `pro_turn` does NOT return round_count.
-                 # To show round number, we might need to include it in pro_turn return or just leave it generic.
-                 # Let's update `pro_turn` to return round_count as well, it's safer.
-                 # For now, generic description.
                 payload["description"] = f"Debate Round (PRO)"
             elif node_name == "debate":
                 round_num = node_data.get('round_count', 0)
@@ -192,7 +204,6 @@ async def websocket_endpoint(websocket: WebSocket):
             elif node_name == "judge":
                 payload["type"] = "verdict"
                 payload["description"] = "Final Verdict Reached"
-                # Extract the verdict from nested structure: node_data = {"verdict": {...}}
                 if "verdict" in node_data:
                     payload["data"] = serialize_for_json(node_data["verdict"])
 
@@ -207,11 +218,11 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected")
     except Exception as e:
-        logger.error(f"WebSocket error: {e}", exc_info=True)
+        safe_message = sanitize_error_message(e, "An unexpected WebSocket error occurred.")
         try:
             await websocket.send_json({
                 "type": "error",
-                "message": f"Internal server error: {str(e)}"
+                "message": safe_message
             })
         except:
             pass  # Connection might be already closed
