@@ -7,7 +7,8 @@ import VerdictReveal from './components/VerdictReveal';
 import ConfigPanel from './components/ConfigPanel';
 import ProgressTracker from './components/ProgressTracker';
 
-const API_URL = 'ws://localhost:8000/ws/verify';
+// Get API URL from environment variables with fallback for local development
+const API_URL = import.meta.env.VITE_API_URL || 'ws://localhost:8000/ws/verify';
 
 function App() {
   const [ws, setWs] = useState(null);
@@ -48,40 +49,58 @@ function App() {
     setStatusText('INITIALIZING UPLINK...');
     setCurrentStep('analysis');
 
-    // Connect to WebSocket
-    const socket = new WebSocket(API_URL);
+    // WebSocket reconnection configuration
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 3000; // 3 seconds
+    let retryCount = 0;
 
-    socket.onopen = () => {
-      console.log('Connected');
-      setStatusText('CONNECTED');
-      socket.send(JSON.stringify({
-        input,
-        type: inputType,
-        max_iterations: maxIterations,
-        max_searches: maxSearches,
-        language: language,
-        proPersonality: proPersonality,
-        contraPersonality: contraPersonality
-      }));
+    const connectWebSocket = () => {
+      const socket = new WebSocket(API_URL);
+
+      socket.onopen = () => {
+        console.log('Connected');
+        retryCount = 0; // Reset retry count on successful connection
+        setStatusText('CONNECTED');
+        socket.send(JSON.stringify({
+          input,
+          type: inputType,
+          max_iterations: maxIterations,
+          max_searches: maxSearches,
+          language: language,
+          proPersonality: proPersonality,
+          contraPersonality: contraPersonality
+        }));
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleUpdate(data);
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+        setStatusText('CONNECTION ERROR');
+
+        // Retry logic
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          setStatusText(`RECONNECTING... (${retryCount}/${MAX_RETRIES})`);
+          setTimeout(connectWebSocket, RETRY_DELAY);
+        } else {
+          setStatusText('CONNECTION FAILED');
+          setIsProcessing(false);
+        }
+      };
+
+      socket.onclose = () => {
+        console.log('Disconnected');
+        if (!verdict) setIsProcessing(false);
+      };
+
+      setWs(socket);
     };
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      handleUpdate(data);
-    };
-
-    socket.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-      setStatusText('CONNECTION ERROR');
-      setIsProcessing(false);
-    };
-
-    socket.onclose = () => {
-      console.log('Disconnected');
-      if (!verdict) setIsProcessing(false);
-    };
-
-    setWs(socket);
+    connectWebSocket();
   };
 
   const handleUpdate = (payload) => {
