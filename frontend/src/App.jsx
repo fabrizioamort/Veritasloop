@@ -5,6 +5,7 @@ import AgentNode from './components/AgentNode';
 import DebateStream from './components/DebateStream';
 import VerdictReveal from './components/VerdictReveal';
 import ConfigPanel from './components/ConfigPanel';
+import ProgressTracker from './components/ProgressTracker';
 
 const API_URL = 'ws://localhost:8000/ws/verify';
 
@@ -27,6 +28,7 @@ function App() {
   const [proStatus, setProStatus] = useState('idle');
   const [contraStatus, setContraStatus] = useState('idle');
   const [verdict, setVerdict] = useState(null);
+  const [currentStep, setCurrentStep] = useState('analysis'); // analysis, research, debate, verdict
 
   const [isVerdictVisible, setIsVerdictVisible] = useState(true);
 
@@ -44,6 +46,7 @@ function App() {
     setVerdict(null);
     setIsVerdictVisible(true);
     setStatusText('INITIALIZING UPLINK...');
+    setCurrentStep('analysis');
 
     // Connect to WebSocket
     const socket = new WebSocket(API_URL);
@@ -86,31 +89,38 @@ function App() {
 
     if (description) setStatusText(description.toUpperCase());
 
-    // Agent Animations - Predictive State
-    // We set status for the NEXT node based on the one that just completed
+    // Agent Animations - Reactive State
+    // We set status for the CURRENT node executing
     if (node === 'initialize') {
       setStatusText('EXTRACTING CLAIM...');
+      setProStatus('idle');
+      setContraStatus('idle');
+      setCurrentStep('analysis');
     } else if (node === 'extract') {
-      // Next: PRO Research
-      setProStatus('thinking');
+      // System working
+      setProStatus('idle');
       setContraStatus('idle');
+      setCurrentStep('analysis');
     } else if (node === 'pro_research') {
-      // Next: CONTRA Research
-      setProStatus('idle');
-      setContraStatus('thinking');
+      // PRO Researching
+      setProStatus('searching');
+      setContraStatus('idle');
+      setCurrentStep('research');
     } else if (node === 'contra_research') {
-      // Next: PRO Debate Turn (Round 1)
-      setProStatus('thinking');
-      setContraStatus('idle');
-    } else if (node === 'pro_node') {
-      // Next: CONTRA Debate Turn
+      // CONTRA Researching
       setProStatus('idle');
-      setContraStatus('thinking');
-    } else if (node === 'contra_node') {
-      // Next: PRO Debate Turn (Round X) or Judge
-      // We assume debate continues for UI feedback
-      setProStatus('thinking');
+      setContraStatus('searching');
+      setCurrentStep('research');
+    } else if (node === 'pro_node') {
+      // PRO Debating
+      setProStatus('speaking');
       setContraStatus('idle');
+      setCurrentStep('debate');
+    } else if (node === 'contra_node') {
+      // CONTRA Debating
+      setProStatus('idle');
+      setContraStatus('speaking');
+      setCurrentStep('debate');
     } else if (node === 'debate') {
       // Fallback or legacy
       if (data && data.messages) {
@@ -163,6 +173,7 @@ function App() {
       setVerdict(data); // data is the Verdict object
       setIsProcessing(false);
       setIsVerdictVisible(true);
+      setCurrentStep('verdict');
       ws.close();
     }
 
@@ -187,6 +198,7 @@ function App() {
     setProStatus('idle');
     setContraStatus('idle');
     setIsVerdictVisible(true);
+    setCurrentStep('analysis');
   };
 
   return (
@@ -197,8 +209,11 @@ function App() {
           <Activity className="text-accent" />
           <h1 className="text-xl font-bold tracking-[0.2em] glow-text">VERITAS<span className="text-accent">LOOP</span></h1>
         </div>
-        <div className="font-mono text-xs text-muted">
-          STATUS: <span className={isProcessing ? 'text-green-400 animate-pulse' : 'text-gray-500'}>{statusText}</span>
+        <div className="font-mono text-xs text-muted flex items-center gap-4">
+          {isProcessing && <ProgressTracker currentStep={currentStep} />}
+          <div>
+            STATUS: <span className={isProcessing ? 'text-green-400 animate-pulse' : 'text-gray-500'}>{statusText}</span>
+          </div>
         </div>
       </header>
 
@@ -263,7 +278,7 @@ function App() {
                 className="bg-accent hover:bg-opacity-80 text-white px-8 py-3 rounded font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)]"
               >
                 <Send size={20} />
-                VERIFY
+                {isProcessing ? 'INITIALIZING...' : 'VERIFY'}
               </button>
             </div>
           </div>

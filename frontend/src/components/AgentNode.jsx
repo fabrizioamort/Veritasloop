@@ -46,7 +46,8 @@ const AgentNode = ({ role, status, label, personality }) => {
         <div className="flex flex-col items-center gap-4 p-6">
             <div className="relative">
                 {/* Pulse Effect */}
-                {isActive && (
+                {/* Pulse Effect (Speaking/Active) */}
+                {isActive && status !== 'searching' && (
                     <motion.div
                         initial={{ scale: 1, opacity: 0.5 }}
                         animate={{ scale: 1.5, opacity: 0 }}
@@ -54,6 +55,24 @@ const AgentNode = ({ role, status, label, personality }) => {
                         className="absolute inset-0 rounded-full"
                         style={{ backgroundColor: color, filter: 'blur(10px)' }}
                     />
+                )}
+
+                {/* Searching Effect */}
+                {status === 'searching' && (
+                    <>
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-[-8px] rounded-full border border-dashed"
+                            style={{ borderColor: color, opacity: 0.6 }}
+                        />
+                        <motion.div
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-[-15px] rounded-full border border-dotted"
+                            style={{ borderColor: color, opacity: 0.3 }}
+                        />
+                    </>
                 )}
 
                 {/* Core Icon */}
