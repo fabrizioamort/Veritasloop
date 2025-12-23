@@ -39,6 +39,30 @@ function App() {
     };
   }, [ws]);
 
+  // Timeout for verification process (5 minutes)
+  useEffect(() => {
+    let timeoutId;
+
+    if (isProcessing) {
+      // Set 5-minute timeout for verification
+      timeoutId = setTimeout(() => {
+        setStatusText('VERIFICATION TIMED OUT');
+        setIsProcessing(false);
+        setProStatus('idle');
+        setContraStatus('idle');
+        if (ws) {
+          ws.close();
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isProcessing, ws]);
+
   const startVerification = () => {
     if (!input.trim()) return;
 
@@ -254,7 +278,25 @@ function App() {
         {/* Center: Arena */}
         <section className="flex flex-col relative bg-black/20 min-h-0 overflow-hidden relative">
           {/* Messages Area */}
-          <DebateStream messages={messages} />
+          {isProcessing && messages.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="w-full max-w-2xl space-y-4" role="status" aria-label="Loading verification">
+                {/* Skeleton loader for initial messages */}
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                  <div className="h-4 bg-white/10 rounded w-1/2"></div>
+                  <div className="h-4 bg-white/10 rounded w-5/6"></div>
+                  <div className="mt-8 h-4 bg-white/10 rounded w-2/3"></div>
+                  <div className="h-4 bg-white/10 rounded w-4/5"></div>
+                </div>
+                <p className="text-center text-gray-400 mt-6 font-mono text-sm">
+                  {statusText}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <DebateStream messages={messages} />
+          )}
 
           {/* Show Verdict Button (Floating) */}
           {verdict && !isVerdictVisible && (

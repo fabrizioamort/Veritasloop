@@ -453,49 +453,150 @@ Add service worker for offline support and faster load times.
 
 ## Security Considerations
 
-### 1. HTTPS/WSS Only
+VeritasLoop includes **production-ready security features** out of the box. The following security measures are already implemented:
+
+### ✅ Implemented Security Features
+
+#### 1. Input Validation & Sanitization
+**Status**: ✅ **Fully Implemented**
+
+All WebSocket messages are validated using Pydantic models:
+
+```python
+# api/main.py - Already implemented
+class VerificationRequest(BaseModel):
+    input: str = Field(..., min_length=1, max_length=10000)
+    type: str = Field(default="Text", pattern="^(Text|URL)$")
+    max_iterations: int = Field(default=3, ge=1, le=10)
+    max_searches: int = Field(default=-1, ge=-1, le=100)
+    language: str = Field(default="Italian", pattern="^(Italian|English)$")
+    proPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
+    contraPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
+```
+
+URLs are validated before fetching:
+- Protocol check (only HTTP/HTTPS allowed)
+- Length limit (< 2048 characters)
+- Domain validation
+
+#### 2. CORS Configuration
+**Status**: ✅ **Fully Implemented**
+
+Environment-based CORS configuration (no wildcards):
+
+```python
+# api/main.py - Already implemented
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins_list,  # From environment variable
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],  # Explicit methods only
+    allow_headers=["Content-Type"],  # Explicit headers only
+    max_age=3600,
+)
+```
+
+Configure in `.env`:
+```bash
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+```
+
+#### 3. Rate Limiting
+**Status**: ✅ **Fully Implemented**
+
+IP-based rate limiting using slowapi:
+
+```python
+# api/main.py - Already implemented
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.websocket("/ws/verify")
+@limiter.limit("10/minute")  # Default: 10 verifications per minute per IP
+async def websocket_endpoint(websocket: WebSocket, request: Request):
+    ...
+```
+
+To adjust rate limit, modify the decorator:
+```python
+@limiter.limit("20/minute")  # Increase to 20/minute
+```
+
+#### 4. Error Message Sanitization
+**Status**: ✅ **Fully Implemented**
+
+All errors are sanitized before sending to clients:
+
+```python
+# api/server_utils.py - Already implemented
+def sanitize_error_message(error: Exception, default: str = "An error occurred") -> str:
+    """Return user-safe error message while logging detailed error."""
+    logger.error(f"Detailed error: {error}", exc_info=True)  # Log full details
+
+    safe_messages = {
+        ValueError: "Invalid input provided",
+        TimeoutError: "Request timed out",
+        ConnectionError: "Unable to connect to external service",
+    }
+
+    return safe_messages.get(type(error), default)  # Return safe message
+```
+
+#### 5. Request Timeouts
+**Status**: ✅ **Fully Implemented**
+
+All external HTTP requests have 10-second timeout:
+
+```python
+# src/tools/*.py - Already implemented
+response = requests.get(
+    url,
+    headers=headers,
+    timeout=settings.request_timeout,  # 10 seconds
+    allow_redirects=False  # Security: prevent redirect attacks
+)
+```
+
+#### 6. Environment Validation
+**Status**: ✅ **Fully Implemented**
+
+Application validates required environment variables on startup:
+
+```python
+# src/config/env_validator.py - Already implemented
+def validate_all():
+    """Validate required environment variables on startup."""
+    required = ['OPENAI_API_KEY', 'BRAVE_SEARCH_API_KEY']
+
+    missing = [var for var in required if not os.getenv(var)]
+
+    if missing:
+        logger.error(f"Missing required variables: {', '.join(missing)}")
+        sys.exit(1)  # Refuse to start
+```
+
+### 🔧 Additional Security Configuration
+
+#### 1. HTTPS/WSS Only
+**Action Required**: Configure SSL/TLS certificate
+
 - **Never** use HTTP/WS in production
 - Redirect all HTTP to HTTPS
 - Use WSS (`wss://`) for WebSocket connections
 
-### 2. CORS Configuration
-```python
-# api/main.py
-from fastapi.middleware.cors import CORSMiddleware
+See [SSL/TLS Configuration](#ssltls-configuration) section below.
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://yourdomain.com"],  # Not "*" !!!
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
+#### 2. API Key Security
+**Action Required**: Use secrets management in production
 
-### 3. API Key Security
-- Store in environment variables
-- Never commit to Git
-- Rotate keys regularly
-- Use secrets management (AWS Secrets Manager, HashiCorp Vault)
-
-### 4. Rate Limiting
-```python
-# Install: pip install slowapi
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-
-@app.websocket("/ws/verify")
-@limiter.limit("5/minute")  # 5 verifications per minute per IP
-async def websocket_endpoint(websocket: WebSocket):
-    ...
-```
-
-### 5. Input Validation
-- Already implemented via Pydantic
-- Add additional sanitization for URLs
-- Implement content security policy (CSP)
+- ✅ Store in environment variables (already supported)
+- ✅ Never commit to Git (already in `.gitignore`)
+- ⚠️ Rotate keys regularly (manual process)
+- ⚠️ Use secrets management (AWS Secrets Manager, HashiCorp Vault) for production
 
 ### 6. Security Headers
 ```nginx

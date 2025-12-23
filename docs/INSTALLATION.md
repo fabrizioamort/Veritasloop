@@ -50,8 +50,15 @@ Copy the example environment file and add your API keys:
 cp .env.example .env
 ```
 
-> **⚠️ SECURITY WARNING**
-> The `.env` file contains your secret API keys. **NEVER** commit this file to Git or share it publicly. The `.gitignore` file is already configured to ignore it, but you must ensure it remains private.
+> **⚠️ CRITICAL SECURITY WARNINGS**
+>
+> 1. **API Key Protection**: The `.env` file contains your secret API keys. **NEVER** commit this file to Git or share it publicly.
+> 2. **Git History**: If you accidentally committed API keys, immediately:
+>    - Rotate ALL affected API keys
+>    - Use `git filter-branch` or BFG Repo-Cleaner to remove keys from history
+>    - Force push to update remote repository
+> 3. **Environment Validation**: VeritasLoop validates required environment variables on startup and will refuse to start if critical keys are missing.
+> 4. **Production Deployment**: Use environment variable management systems (AWS Secrets Manager, HashiCorp Vault) instead of `.env` files in production.
 
 Edit `.env` and add at minimum:
 ```bash
@@ -108,9 +115,10 @@ The frontend dev server should start on http://localhost:5173
 - **pydantic>=2.0.0**: Data validation and serialization
 
 **API Server**
-- **fastapi>=0.124.0**: Modern web framework for building APIs
-- **uvicorn>=0.38.0**: ASGI server for FastAPI
+- **fastapi>=0.104.0**: Modern web framework for building APIs
+- **uvicorn>=0.24.0**: ASGI server for FastAPI
 - **websockets>=15.0.1**: WebSocket protocol implementation
+- **slowapi>=0.1.9**: Rate limiting for FastAPI applications
 
 **Search & Content**
 - **beautifulsoup4>=4.12.0**: HTML parsing
@@ -160,7 +168,11 @@ The frontend dev server should start on http://localhost:5173
 
 ## Environment Variables
 
-See `.env.example` for the complete list. Required variables:
+See `.env.example` for the complete list.
+
+### Required Variables
+
+VeritasLoop performs **automatic validation** on startup and will exit with a clear error message if required variables are missing:
 
 ```bash
 # LLM Provider (at least one required)
@@ -170,11 +182,39 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 # Search API (required)
 BRAVE_SEARCH_API_KEY=...
+```
 
-# Optional: News & Social
-NEWS_API_KEY=...
-REDDIT_CLIENT_ID=...
+### Optional Variables
+
+These enhance functionality but are not required:
+
+```bash
+# News & Social Media
+NEWS_API_KEY=...              # NewsAPI for news aggregation
+REDDIT_CLIENT_ID=...          # Reddit API via PRAW
 REDDIT_CLIENT_SECRET=...
+
+# Configuration
+ALLOWED_ORIGINS=http://localhost:5173  # CORS allowed origins (comma-separated)
+LOG_LEVEL=INFO                # Logging level (DEBUG, INFO, WARNING, ERROR)
+PHOENIX_ENABLED=true          # Enable Phoenix tracing (true/false)
+REQUEST_TIMEOUT=10            # HTTP request timeout in seconds
+```
+
+### Frontend Environment Variables
+
+Create `frontend/.env.development` for local development:
+
+```bash
+VITE_API_URL=ws://localhost:8000/ws/verify
+VITE_ENVIRONMENT=development
+```
+
+For production, create `frontend/.env.production`:
+
+```bash
+VITE_API_URL=wss://yourdomain.com/ws/verify
+VITE_ENVIRONMENT=production
 ```
 
 ## Troubleshooting

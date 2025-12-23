@@ -4,11 +4,14 @@ import logging
 import socket
 import os
 from pathlib import Path
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables from .env file
 load_dotenv()
@@ -92,6 +95,11 @@ else:
 
 app = FastAPI(title="VeritasLoop API")
 
+# Configure rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 @app.on_event("startup")
 async def startup_event():
     """Validate environment variables on application startup."""
@@ -117,7 +125,8 @@ async def root():
     return {"status": "online", "service": "VeritasLoop API"}
 
 @app.websocket("/ws/verify")
-async def websocket_endpoint(websocket: WebSocket):
+@limiter.limit("10/minute")  # 10 verifications per minute per IP
+async def websocket_endpoint(websocket: WebSocket, request: Request):
     await websocket.accept()
     logger.info("WebSocket connection established")
 

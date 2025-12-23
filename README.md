@@ -17,6 +17,17 @@
 
 ## 📢 Latest Updates
 
+**Version 0.4.0 - December 2025 - Production Ready 🚀**
+- 🔒 **Enterprise-Grade Security**: CORS configuration, input validation, URL sanitization, error message sanitization
+- ⚡ **Enhanced Stability**: HTTP timeouts, LLM error handling, WebSocket reconnection, cache size limits
+- ♿ **Accessibility First**: ARIA attributes, keyboard navigation, screen reader support
+- 🛡️ **Rate Limiting**: Protection against abuse with configurable request limits (10/minute default)
+- ⏱️ **Smart Timeouts**: 5-minute automatic timeout for long-running verifications
+- 📊 **Environment Validation**: Startup checks ensure all required API keys are configured
+- 🎨 **Loading States**: Skeleton loaders and smooth transitions for better UX
+- 🔧 **Centralized Configuration**: Environment-based settings for backend and frontend
+- 📝 **Structured Logging**: Production-ready logging with proper log levels
+
 **Version 0.3.0 - December 2025**
 - 🎭 **Agent Personalities**: Select communication styles for PRO and CONTRA agents (Passive, Assertive, Aggressive)
 - 👥 **Named Agents**: Each personality has a unique name (Oliver, Marcus, Victor, Sophie, Diana, Raven)
@@ -90,6 +101,41 @@ VeritasLoop addresses these through:
 - **Transparent debate**: Full reasoning and sources exposed to users
 - **Nuanced verdicts**: Five-category classification system (True, False, Partially True, Missing Context, Cannot Verify)
 - **Multi-source verification**: Web search, news APIs, social sentiment, fact-check databases
+
+---
+
+## 🔒 Production Readiness
+
+VeritasLoop is built with enterprise-grade security, stability, and accessibility features for public deployment:
+
+### Security & Validation
+- **🛡️ Input Validation**: Pydantic-based validation for all WebSocket messages and API inputs
+- **🔗 URL Sanitization**: Comprehensive URL validation with protocol and length checks
+- **🚫 CORS Protection**: Environment-configurable allowed origins (no wildcards in production)
+- **🔐 Error Sanitization**: User-friendly error messages that don't leak internal details
+- **⏱️ Request Timeouts**: 10-second timeout on all external HTTP requests to prevent hanging
+- **🚦 Rate Limiting**: Configurable IP-based rate limiting (default: 10 requests/minute)
+
+### Stability & Reliability
+- **🔄 WebSocket Reconnection**: Automatic retry logic with exponential backoff (max 3 retries)
+- **⏰ Verification Timeouts**: 5-minute automatic timeout for long-running verifications
+- **🛡️ LLM Error Handling**: Graceful degradation when LLM calls fail
+- **💾 Cache Size Limits**: LRU cache with 1000-entry limit prevents memory exhaustion
+- **📊 Environment Validation**: Startup validation ensures all required API keys are configured
+- **🔧 Frontend Error Boundary**: React error boundary prevents full app crashes
+
+### User Experience & Accessibility
+- **♿ ARIA Compliant**: Full ARIA attributes for screen readers and assistive technologies
+- **⌨️ Keyboard Navigation**: Complete keyboard accessibility for all interactive elements
+- **🎨 Loading States**: Skeleton loaders and smooth animations during verification
+- **📱 Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **🌐 Internationalization**: Italian and English language support
+
+### Configuration & Monitoring
+- **⚙️ Centralized Settings**: Pydantic-based settings management with environment variable support
+- **📝 Structured Logging**: Production-ready logging with configurable log levels
+- **🔍 Phoenix Tracing**: Optional observability with Arize Phoenix integration
+- **📊 Performance Metrics**: Comprehensive tracking of cache hits, API calls, and processing time
 
 ---
 

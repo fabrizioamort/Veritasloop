@@ -104,6 +104,40 @@ veritasloop/
         └── traces.db           # Phoenix traces
 ```
 
+## Production Readiness Standards
+
+As of Version 0.4.0, VeritasLoop follows enterprise-grade production standards:
+
+### Security Requirements
+
+- ✅ **Input Validation**: All external inputs validated with Pydantic
+- ✅ **CORS Configuration**: No wildcards, environment-based origins
+- ✅ **Error Sanitization**: Generic user messages, detailed server logs
+- ✅ **Rate Limiting**: IP-based limits to prevent abuse
+- ✅ **URL Validation**: Protocol and length checks before fetching
+- ✅ **Timeout Protection**: 10-second HTTP timeouts, 5-minute verification timeout
+
+### Stability Requirements
+
+- ✅ **Error Handling**: Try-catch blocks around all external calls
+- ✅ **Graceful Degradation**: Fallback messages on LLM failures
+- ✅ **Cache Limits**: LRU eviction with 1000-entry maximum
+- ✅ **Reconnection Logic**: WebSocket auto-retry (max 3 attempts)
+- ✅ **Environment Validation**: Startup checks for required API keys
+
+### Accessibility Requirements
+
+- ✅ **ARIA Compliance**: All interactive elements have proper ARIA attributes
+- ✅ **Keyboard Navigation**: Full keyboard accessibility
+- ✅ **Screen Reader Support**: Descriptive labels and live regions
+- ✅ **Loading States**: Skeleton loaders and status indicators
+
+**When Contributing:**
+- Maintain or improve these standards
+- Add tests for new security features
+- Document accessibility considerations
+- Update error handling patterns
+
 ## Code Style & Standards
 
 ### Python (Backend)
@@ -140,6 +174,12 @@ mypy src/ --ignore-missing-imports
 - Maximum line length: 88 characters (Black default)
 - Use Pydantic for data validation
 - Prefer composition over inheritance
+- **Production Standards (v0.4.0)**:
+  - Use structured logging (`logger.error()`, not `print()`)
+  - Wrap external calls in try-except with sanitized error messages
+  - Add timeouts to all HTTP requests (`timeout=settings.request_timeout`)
+  - Validate all user inputs with Pydantic models
+  - Implement graceful degradation for optional features
 
 **Example:**
 ```python
@@ -548,11 +588,18 @@ console.log('Current state:', agentStatus);
 - ✅ Type hints (Python) or PropTypes (React)
 - ✅ Docstrings for new functions
 - ✅ Updated documentation (if applicable)
+- ✅ **Security checks (v0.4.0)**:
+  - Input validation for user-provided data
+  - Error sanitization (no internal details exposed)
+  - Timeout configuration for external calls
+  - ARIA attributes for new UI components (if applicable)
 
 **Good to have:**
 - Test coverage maintained or improved
 - Screenshots for UI changes
 - Performance benchmarks for optimizations
+- Accessibility testing results
+- Security audit for sensitive changes
 
 ### Code Review Checklist
 

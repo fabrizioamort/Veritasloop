@@ -32,6 +32,12 @@ Open your browser to **http://localhost:5173** and you'll see:
 - Configurable parameters (max iterations, max searches)
 - Full-screen verdict reveal with detailed analysis
 - Responsive design for desktop and tablet
+- **Production Features (v0.4.0)**:
+  - ⏱️ 5-minute automatic timeout for long-running verifications
+  - 🔄 Automatic WebSocket reconnection (max 3 retries)
+  - 🎨 Skeleton loading states during initialization
+  - 🛡️ Rate limiting protection (10 requests/minute per IP)
+  - ♿ Full accessibility with ARIA attributes and keyboard navigation
 
 **Example workflow:**
 
@@ -331,6 +337,86 @@ VeritasLoop automatically tracks comprehensive performance metrics:
 }
 ```
 
+## Production Features & Limitations
+
+### Rate Limiting
+
+VeritasLoop implements IP-based rate limiting to prevent abuse:
+
+**Default Limits:**
+- **10 verifications per minute** per IP address
+- Automatic HTTP 429 response when limit exceeded
+- Counter resets every 60 seconds
+
+**What happens when rate limited:**
+1. WebSocket connection rejected immediately
+2. Error message displayed: "Rate limit exceeded. Please try again later."
+3. Must wait until the next minute to retry
+
+**For administrators:**
+Adjust rate limit in `api/main.py`:
+```python
+@limiter.limit("20/minute")  # Change from default 10/minute
+```
+
+### Automatic Timeouts
+
+**Verification Timeout:**
+- Maximum execution time: **5 minutes**
+- Automatic cleanup and WebSocket closure
+- Status message: "VERIFICATION TIMED OUT"
+
+**HTTP Request Timeout:**
+- External API timeout: **10 seconds**
+- Prevents hanging on slow or unresponsive services
+- Automatic fallback to alternative search methods
+
+**WebSocket Reconnection:**
+- Maximum retry attempts: **3**
+- Retry delay: **3 seconds** between attempts
+- Status updates: "RECONNECTING... (1/3)", "(2/3)", "(3/3)"
+- Final failure: "CONNECTION FAILED"
+
+### Error Handling
+
+VeritasLoop gracefully handles errors without exposing internal details:
+
+**User-Facing Errors:**
+- "Invalid input provided" (validation errors)
+- "Failed to process the provided URL" (URL extraction errors)
+- "An unexpected error occurred" (unhandled exceptions)
+
+**Internal Logging:**
+- Full error details logged server-side
+- Stack traces preserved for debugging
+- Error context included (request data, timestamps)
+
+**LLM Failures:**
+- Agent returns fallback message
+- Confidence score set to 0%
+- Debate continues with degraded quality
+- Never causes full system failure
+
+### Accessibility Features
+
+**Keyboard Navigation:**
+- `Tab`: Navigate between interactive elements
+- `Enter`: Submit form or activate button
+- `Escape`: Close modal dialogs
+- `Arrow keys`: Navigate within select dropdowns
+
+**Screen Reader Support:**
+- All form inputs have descriptive labels
+- Status announcements for verification progress
+- ARIA live regions for dynamic content updates
+- Modal dialogs properly announce when opened
+
+**Visual Indicators:**
+- Loading states with skeleton loaders
+- Color-coded verdict categories
+- Status text updates during processing
+- Clear error messages
+
 ## Best Practices
 
 ### For CLI Usage
@@ -339,6 +425,7 @@ VeritasLoop automatically tracks comprehensive performance metrics:
 2. **Save results with `--output`**: Keep verification records
 3. **Enable tracing for complex cases**: Use `--trace` to debug issues
 4. **Disable cache when testing**: Use `--no-cache` for fresh results
+5. **Monitor for timeouts**: Long verifications may hit 5-minute limit
 
 ### For Web UI Usage
 

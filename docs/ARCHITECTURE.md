@@ -173,17 +173,26 @@ class Verdict(BaseModel):
 
 ### 4. Caching System
 
-The **ToolManager** ([`src/utils/tool_manager.py`](../src/utils/tool_manager.py)) provides intelligent caching:
+The **ToolManager** ([`src/utils/tool_manager.py`](../src/utils/tool_manager.py)) provides intelligent caching with production-ready safeguards:
 
+**Cache Features:**
 - **Search Cache**: Query string → Results (TTL: 3600s)
 - **URL Cache**: URL → Extracted content (TTL: 3600s)
+- **Size Limits**: Maximum 1000 entries per cache (LRU eviction)
 - **Metrics Tracking**: Hit/miss ratios, performance monitoring
+
+**Production Enhancements (v0.4.0):**
+- **LRU (Least Recently Used)** eviction prevents unlimited memory growth
+- **Automatic cleanup** when cache reaches 1000 entries
+- **Thread-safe operations** for concurrent requests
+- **TTL enforcement** ensures stale data is automatically purged
 
 **Benefits:**
 - Reduces redundant API calls (saves costs)
 - Improves response time (faster verification)
 - Stays within API rate limits
 - Decreases token usage (less LLM processing)
+- **Memory safety** prevents cache-related crashes in long-running deployments
 
 ## Workflow Sequence
 
@@ -263,6 +272,13 @@ The **ToolManager** ([`src/utils/tool_manager.py`](../src/utils/tool_manager.py)
 - **Implementation**: Brave API → DuckDuckGo fallback
 - **Benefits**: System continues working despite API failures
 
+**Production Enhancements (v0.4.0):**
+- **LLM Error Handling**: Agents return fallback messages with 0% confidence on LLM failures
+- **HTTP Timeouts**: All external requests timeout after 10 seconds to prevent hanging
+- **WebSocket Reconnection**: Automatic retry with exponential backoff (max 3 attempts)
+- **Frontend Error Boundary**: React error boundary prevents full app crashes
+- **Verification Timeout**: 5-minute maximum execution time with automatic cleanup
+
 ## Observability
 
 ### Phoenix Integration
@@ -283,6 +299,119 @@ The **ToolManager** ([`src/utils/tool_manager.py`](../src/utils/tool_manager.py)
 **Implementation**: Automatic instrumentation via OpenInference
 
 See [LOGGING.md](LOGGING.md) for detailed logging documentation.
+
+## Production Readiness (v0.4.0)
+
+VeritasLoop implements comprehensive production-ready features across security, stability, and accessibility:
+
+### Security Features
+
+**Input Validation:**
+- Pydantic models validate all WebSocket messages
+- URL validation with protocol and length checks
+- String length limits (max 10,000 characters for inputs)
+- Regex pattern validation for enum fields
+
+**CORS Configuration:**
+- Environment-based allowed origins (no wildcards)
+- Restricted HTTP methods (GET, POST only)
+- Restricted headers (Content-Type only)
+- Configurable via `ALLOWED_ORIGINS` environment variable
+
+**Error Sanitization:**
+- Detailed errors logged server-side only
+- User-friendly generic messages sent to clients
+- No internal implementation details exposed
+- Prevents information leakage vulnerabilities
+
+**Request Timeouts:**
+- 10-second timeout on all HTTP requests
+- Prevents resource exhaustion from slow responses
+- `allow_redirects=False` prevents redirect attacks
+
+**Rate Limiting:**
+- IP-based rate limiting (10 requests/minute default)
+- Configurable per-endpoint limits
+- Automatic 429 responses when limit exceeded
+- Protects against abuse and DoS attacks
+
+### Stability Features
+
+**WebSocket Resilience:**
+- Automatic reconnection with retry logic
+- Maximum 3 retry attempts with 3-second delay
+- Connection state tracking and recovery
+- Clean shutdown on timeout or errors
+
+**Verification Timeouts:**
+- 5-minute maximum execution time
+- Automatic cleanup and WebSocket closure
+- Prevents indefinite resource consumption
+- Clear timeout status messages to users
+
+**LLM Error Handling:**
+- Try-catch blocks around all LLM invocations
+- Fallback messages on LLM failures
+- Confidence score set to 0 on errors
+- Agents continue functioning with degraded quality
+
+**Cache Management:**
+- LRU eviction with 1000-entry limit
+- TTL-based expiration (1-hour default)
+- Thread-safe OrderedDict implementation
+- Prevents memory leaks in long-running deployments
+
+**Environment Validation:**
+- Startup validation of required API keys
+- Clear error messages for missing variables
+- Application refuses to start if critical keys missing
+- Prevents runtime failures from misconfiguration
+
+### Accessibility Features
+
+**ARIA Compliance:**
+- Semantic HTML with proper roles
+- `aria-label` and `aria-labelledby` for all interactive elements
+- `aria-live` regions for real-time updates
+- `aria-modal` for modal dialogs
+
+**Keyboard Navigation:**
+- Full keyboard accessibility for all features
+- Tab order follows logical flow
+- Enter key triggers primary actions
+- Escape key closes modals
+
+**Screen Reader Support:**
+- Descriptive labels for form inputs
+- Status announcements for state changes
+- Hidden text for context (`.sr-only` class)
+- Proper heading hierarchy
+
+**Loading States:**
+- Skeleton loaders with pulse animation
+- Status text updates during processing
+- Visual feedback for all asynchronous operations
+- Clear indication of completion or failure
+
+### Configuration Management
+
+**Centralized Settings:**
+- Pydantic-based `Settings` class
+- Environment variable support with defaults
+- Type validation and conversion
+- Located in `src/config/settings.py`
+
+**Frontend Configuration:**
+- Vite environment variables (`VITE_*`)
+- Separate `.env.development` and `.env.production`
+- Build-time variable injection
+- WebSocket URL configuration
+
+**Logging:**
+- Structured logging with log levels
+- Configurable via `LOG_LEVEL` environment variable
+- Production-safe (no `print()` statements)
+- Separate loggers per module
 
 ## Security Considerations
 

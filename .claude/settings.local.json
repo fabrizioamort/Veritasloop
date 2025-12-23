@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \".env file exists\")",
+      "Bash(else echo \".env file does not exist - user needs to create it from .env.example\")",
+      "Bash(fi:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python:*)",
+      "Bash(npm run lint)"
+    ]
+  }
+}
