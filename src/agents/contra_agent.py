@@ -153,7 +153,7 @@ class ContraAgent(BaseAgent):
             confidence = 0.0
         
         return DebateMessage(
-            round=state['round_count'] + 1,
+            round=state['round_count'],
             agent=AgentType.CONTRA,
             message_type=msg_type,
             content=content,

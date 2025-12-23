@@ -54,17 +54,19 @@ class TestBaseAgent(unittest.TestCase):
         self.agent.search(query, "default")
         self.mock_tool_manager.search_web.assert_called_once_with(query, tool="brave")
 
+    @patch.dict('os.environ', {'GOOGLE_PSE_API_KEY': 'test_key', 'GOOGLE_PSE_CX': 'test_cx'})
     def test_search_fact_check_strategy_hit(self):
         """Test the fact_check_first strategy with a hit on the first tier."""
         query = "fact check query"
         # Simulate that the first tool returns results
         self.mock_tool_manager.search_web.return_value = [{"title": "Fact Check Result", "url": "http://factcheck.example.com"}]
-        
+
         self.agent.search(query, "fact_check_first")
-        
-        # It should only call the first tool
+
+        # It should only call the first tool (google_pse_factcheck when env vars are set)
         self.mock_tool_manager.search_web.assert_called_once_with(query, tool="google_pse_factcheck")
 
+    @patch.dict('os.environ', {'GOOGLE_PSE_API_KEY': 'test_key', 'GOOGLE_PSE_CX': 'test_cx'})
     def test_search_fact_check_strategy_miss(self):
         """Test the fact_check_first strategy with a miss on the first tier."""
         query = "fact check query"
@@ -73,10 +75,10 @@ class TestBaseAgent(unittest.TestCase):
             [], # No results for google_pse_factcheck
             [{"title": "Brave Result", "url": "http://example.com"}] # Results for brave
         ]
-        
+
         self.agent.search(query, "fact_check_first")
-        
-        # It should have been called twice
+
+        # It should have been called twice (google_pse_factcheck then brave)
         self.assertEqual(self.mock_tool_manager.search_web.call_count, 2)
         # Check the calls
         calls = self.mock_tool_manager.search_web.call_args_list
@@ -88,13 +90,17 @@ class TestBaseAgent(unittest.TestCase):
     def test_search_web_deep_dive_strategy(self):
         """Test the web_deep_dive strategy."""
         query = "deep dive query"
+        # Mock return values for the search calls
+        self.mock_tool_manager.search_web.return_value = [{"title": "Result", "url": "http://example.com"}]
+
         self.agent.search(query, "web_deep_dive")
-        
-        self.assertEqual(self.mock_tool_manager.search_web.call_count, 3)
+
+        # web_deep_dive calls brave and duckduckgo (2 calls total)
+        self.assertEqual(self.mock_tool_manager.search_web.call_count, 2)
         calls = self.mock_tool_manager.search_web.call_args_list
-        # Order of calls doesn't strictly matter here, but the tools used do
-        tools_called = {call.kwargs['tool'] for call in calls}
-        self.assertEqual(tools_called, {"brave", "news_api", "reddit_api"})
+        # Check the tools used
+        tools_called = [call.kwargs['tool'] for call in calls]
+        self.assertEqual(tools_called, ["brave", "duckduckgo"])
 
 
 if __name__ == '__main__':

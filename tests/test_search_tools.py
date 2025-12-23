@@ -49,10 +49,11 @@ class TestSearchTools(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["title"], "DuckDuckGo")
 
-    def test_google_pse_factcheck_not_implemented(self):
-        """Test that google_pse_factcheck raises NotImplementedError."""
-        with self.assertRaises(NotImplementedError):
-            search("test", tool="google_pse")
+    @patch.dict("os.environ", {}, clear=True)
+    def test_google_pse_factcheck_without_keys(self):
+        """Test that google_pse returns empty list when API keys are not set."""
+        results = search("test", tool="google_pse")
+        self.assertEqual(results, [])
 
     def test_search_unknown_tool(self):
         """Test that search raises ValueError for an unknown tool."""

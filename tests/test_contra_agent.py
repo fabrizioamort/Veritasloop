@@ -55,7 +55,9 @@ def contra_agent(mock_llm, mock_tool_manager):
 
 def test_initialization(contra_agent):
     assert contra_agent.logger.name == "Agent.CONTRA"
-    assert "critical fact-checker" in contra_agent.system_prompt
+    # Default personality is ASSERTIVE (Diana)
+    assert "Diana" in contra_agent.system_prompt
+    assert "skeptical investigative journalist" in contra_agent.system_prompt
 
 
 def test_think_initial_round(contra_agent, mock_tool_manager, mock_llm):
@@ -83,7 +85,8 @@ def test_think_initial_round(contra_agent, mock_tool_manager, mock_llm):
     mock_llm.invoke.assert_called_once()
     call_args = mock_llm.invoke.call_args[0][0]
     assert len(call_args) == 2
-    assert "critical fact-checker" in call_args[0].content  # System prompt
+    # Default personality is ASSERTIVE (Diana)
+    assert "Diana" in call_args[0].content  # System prompt
     assert "Analyze this claim" in call_args[1].content     # User prompt for round 0
 
     # Verify message structure

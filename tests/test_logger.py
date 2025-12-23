@@ -27,6 +27,17 @@ from src.utils.logger import (
 )
 
 
+@pytest.fixture(autouse=True)
+def cleanup_logging_handlers():
+    """Cleanup all logging handlers after each test to prevent file locking on Windows."""
+    yield
+    # Close and remove all handlers from root logger
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        handler.close()
+        root_logger.removeHandler(handler)
+
+
 class TestPerformanceMetrics:
     """Test cases for PerformanceMetrics class."""
 
@@ -130,7 +141,7 @@ class TestLoggingSetup:
         with tempfile.TemporaryDirectory() as tmpdir:
             log_dir = Path(tmpdir) / "test_logs"
 
-            setup_logging(log_dir=str(log_dir), enable_console=False)
+            setup_logging(log_dir=str(log_dir), enable_console=False, enable_file=False)
 
             assert log_dir.exists()
             assert log_dir.is_dir()
@@ -145,7 +156,7 @@ class TestLoggingSetup:
     def test_logger_levels(self):
         """Test logger respects level configuration."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(level="WARNING", log_dir=tmpdir, enable_console=False)
+            setup_logging(level="WARNING", log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("test")
 
             # WARNING level should be enabled
@@ -202,7 +213,7 @@ class TestLogPerformance:
     def test_log_performance_basic(self):
         """Test basic performance logging."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(log_dir=tmpdir, enable_console=False)
+            setup_logging(log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("test")
             metrics = init_metrics()
 
@@ -217,7 +228,7 @@ class TestLogPerformance:
     def test_log_performance_with_error(self):
         """Test performance logging when operation fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(log_dir=tmpdir, enable_console=False)
+            setup_logging(log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("test")
             metrics = init_metrics()
 
@@ -232,7 +243,7 @@ class TestLogPerformance:
     def test_log_performance_multiple_operations(self):
         """Test logging multiple operations."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(log_dir=tmpdir, enable_console=False)
+            setup_logging(log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("test")
             metrics = init_metrics()
 
@@ -258,7 +269,7 @@ class TestMetricsSummaryAndExport:
     def test_log_metrics_summary(self):
         """Test metrics summary logging."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(log_dir=tmpdir, enable_console=False)
+            setup_logging(log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("test")
             metrics = init_metrics()
 
@@ -278,7 +289,7 @@ class TestMetricsSummaryAndExport:
     def test_save_metrics_to_file(self):
         """Test saving metrics to JSON file."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            setup_logging(log_dir=tmpdir, enable_console=False)
+            setup_logging(log_dir=tmpdir, enable_console=False, enable_file=False)
             metrics = init_metrics()
 
             # Add some test data
@@ -313,7 +324,7 @@ class TestLoggingIntegration:
         """Test complete logging workflow from setup to export."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Setup
-            setup_logging(level="INFO", log_dir=tmpdir, enable_console=False)
+            setup_logging(level="INFO", log_dir=tmpdir, enable_console=False, enable_file=False)
             logger = get_logger("integration_test")
 
             # Initialize metrics and context

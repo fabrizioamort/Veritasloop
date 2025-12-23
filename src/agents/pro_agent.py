@@ -95,7 +95,7 @@ IMPORTANT: Your output must be in {language}.
         msg_type = MessageType.ARGUMENT if len(messages) == 0 else MessageType.DEFENSE
 
         return DebateMessage(
-            round=state['round_count'] + 1,
+            round=state['round_count'],
             agent=AgentType.PRO,
             message_type=msg_type,
             content=str(content),
