@@ -1,6 +1,9 @@
 # a news_api.py file
 import os
+import logging
 from newsapi import NewsApiClient
+
+logger = logging.getLogger(__name__)
 
 def search_news(query: str, from_date: str) -> list[dict]:
     """
@@ -25,5 +28,5 @@ def search_news(query: str, from_date: str) -> list[dict]:
         )
         return all_articles["articles"]
     except Exception as e:
-        print(f"Error searching news: {e}")
+        logger.error(f"Error searching news: {e}")
         return []

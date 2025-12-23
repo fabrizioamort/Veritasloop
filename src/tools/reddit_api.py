@@ -1,6 +1,9 @@
 # reddit_api.py
 import os
+import logging
 import praw
+
+logger = logging.getLogger(__name__)
 
 def search_reddit(query: str, subreddits: list[str]) -> list[dict]:
     """
@@ -42,5 +45,5 @@ def search_reddit(query: str, subreddits: list[str]) -> list[dict]:
                 })
         return results
     except Exception as e:
-        print(f"Error searching reddit: {e}")
+        logger.error(f"Error searching reddit: {e}")
         return []

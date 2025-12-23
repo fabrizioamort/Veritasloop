@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, Zap, Activity } from 'lucide-react';
 import AgentNode from './components/AgentNode';
 import DebateStream from './components/DebateStream';
@@ -58,7 +58,9 @@ function App() {
       const socket = new WebSocket(API_URL);
 
       socket.onopen = () => {
-        console.log('Connected');
+        if (import.meta.env.DEV) {
+          console.log('WebSocket connected');
+        }
         retryCount = 0; // Reset retry count on successful connection
         setStatusText('CONNECTED');
         socket.send(JSON.stringify({
@@ -78,7 +80,9 @@ function App() {
       };
 
       socket.onerror = (error) => {
-        console.error('WebSocket Error:', error);
+        if (import.meta.env.DEV) {
+          console.error('WebSocket Error:', error);
+        }
         setStatusText('CONNECTION ERROR');
 
         // Retry logic
@@ -93,7 +97,9 @@ function App() {
       };
 
       socket.onclose = () => {
-        console.log('Disconnected');
+        if (import.meta.env.DEV) {
+          console.log('WebSocket disconnected');
+        }
         if (!verdict) setIsProcessing(false);
       };
 
