@@ -273,30 +273,53 @@ export default AgentNode;
 
 ## Testing
 
+### Test Organization
+
+VeritasLoop has a comprehensive test suite organized into:
+
+1. **Unit Tests**: Test individual components in isolation
+2. **Integration Tests**: Test the full pipeline end-to-end
+3. **Validation Helpers**: Reusable validation functions
+
 ### Backend Tests
 
 **Run all tests:**
 ```bash
+# Using uv (recommended)
+uv run python -m pytest
+
+# Standard pytest
 pytest
 ```
 
 **Run specific test file:**
 ```bash
-pytest tests/test_pro_agent.py
+uv run python -m pytest tests/test_pro_agent.py -v
 ```
 
 **Run with verbose output:**
 ```bash
-pytest -v
+uv run python -m pytest -v
 ```
 
 **Run with coverage report:**
 ```bash
-pytest --cov=src --cov-report=html
+uv run python -m pytest --cov=src --cov-report=html
 # View report: open htmlcov/index.html
 ```
 
-**Test Structure:**
+**Run excluding slow integration tests:**
+```bash
+uv run python -m pytest -k "not integration" -v
+```
+
+### Test Types
+
+#### 1. Unit Tests
+
+Individual component tests for agents, tools, and utilities:
+
+**Example: Agent Testing**
 ```python
 import pytest
 from src.agents.pro_agent import ProAgent
@@ -322,6 +345,166 @@ def test_pro_agent_defense(pro_agent):
 
     assert defense is not None
     assert len(defense.content) > 0
+```
+
+**Files:**
+- `tests/test_pro_agent.py` - PRO agent tests
+- `tests/test_contra_agent.py` - CONTRA agent tests
+- `tests/test_judge_agent.py` - JUDGE agent tests
+- `tests/test_search_tools.py` - Search tool tests
+- `tests/test_content_tools.py` - Content extraction tests
+- `tests/test_schemas.py` - Pydantic model validation tests
+- `tests/test_tool_manager.py` - Caching and tool manager tests
+
+#### 2. Integration Tests
+
+End-to-end pipeline tests in `tests/test_full_pipeline.py`:
+
+**Mocked Integration Tests (Fast)**
+- Use mocked LLM and search responses
+- Run in <5 seconds
+- Always run in CI/CD
+- Test three scenarios:
+  - ✅ Known TRUE claim: "Il terremoto in Emilia del 2012 ha avuto magnitudo 5.9"
+  - ❌ Known FALSE claim: "L'ISTAT ha dichiarato che l'Italia ha 100 milioni di abitanti"
+  - ⚠️ Ambiguous claim: "Le tasse sono aumentate nel 2024"
+
+**Validations:**
+- Graph completes without errors
+- Verdict structure is valid JSON
+- All required fields present
+- Sources have valid URLs
+- State progression is correct
+- Execution time is measured
+
+**Real Integration Tests (Optional, Slow)**
+- Marked with `@pytest.mark.integration` and `@pytest.mark.skip`
+- Use actual API calls (costs money, takes 30-90 seconds)
+- Requires valid API keys in `.env`
+- Enable by removing `@pytest.mark.skip` decorator
+
+**Run real integration tests:**
+```bash
+# 1. Remove @pytest.mark.skip decorator from test_full_pipeline_real in tests/test_full_pipeline.py
+# 2. Ensure .env has valid API keys
+# 3. Run:
+uv run python -m pytest tests/test_full_pipeline.py::test_full_pipeline_real -v
+```
+
+#### 3. Validation Helpers
+
+Reusable validation functions in `tests/test_full_pipeline.py`:
+
+**`is_valid_url(url: str) -> bool`**
+- Validates URL format
+- Checks for http/https scheme
+- Validates netloc presence
+
+**`validate_verdict_structure(verdict_data: dict) -> None`**
+- Validates all required fields exist
+- Checks field types (str, int, float, dict, list)
+- Validates verdict category is valid
+- Ensures confidence score is 0-100
+- Validates analysis structure (pro_strength, contra_strength, etc.)
+- Validates metadata structure
+
+**`validate_sources(sources: list) -> None`**
+- Validates all sources have URLs
+- Checks each URL is properly formatted
+- Works with both dict and Source objects
+
+**Example:**
+```python
+from tests.test_full_pipeline import validate_verdict_structure, is_valid_url
+
+def test_my_verdict():
+    verdict = {
+        "verdict": "VERO",
+        "confidence_score": 85.0,
+        "summary": "Test summary",
+        "analysis": {...},
+        "sources_used": [],
+        "metadata": {...}
+    }
+
+    # Will raise AssertionError if invalid
+    validate_verdict_structure(verdict)
+
+    # Test URL validation
+    assert is_valid_url("https://example.com")
+    assert not is_valid_url("not-a-url")
+```
+
+### Test Configuration
+
+**`tests/conftest.py`** - Shared pytest configuration:
+- Sets up Python path for imports
+- Configures dummy API keys for test environment
+- Adds custom pytest options (`--run-integration`)
+
+**Custom pytest options:**
+```python
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-integration",
+        action="store_true",
+        default=False,
+        help="Run real integration tests (slow, requires API keys)"
+    )
+```
+
+### Writing New Tests
+
+**Guidelines:**
+
+1. **Use fixtures** for reusable test objects
+2. **Mock external dependencies** (LLM, search APIs)
+3. **Test edge cases** (empty inputs, errors, timeouts)
+4. **Use descriptive test names** (`test_pro_agent_handles_empty_sources`)
+5. **Add docstrings** explaining what the test validates
+6. **Group related tests** in classes or files
+7. **Validate both success and failure** paths
+
+**Example structure:**
+```python
+import pytest
+from unittest.mock import MagicMock
+from src.agents.pro_agent import ProAgent
+
+@pytest.fixture
+def mock_llm():
+    """Fixture providing a mocked LLM."""
+    llm = MagicMock()
+    llm.invoke.return_value = MagicMock(content="Mocked response")
+    return llm
+
+@pytest.fixture
+def pro_agent(mock_llm):
+    """Fixture providing a PRO agent with mocked LLM."""
+    return ProAgent(llm=mock_llm, tool_manager=MagicMock())
+
+class TestProAgentResearch:
+    """Tests for PRO agent research functionality."""
+
+    def test_research_with_valid_claim(self, pro_agent):
+        """Test that research works with a valid claim."""
+        result = pro_agent.research("Valid claim")
+        assert result is not None
+        assert len(result.sources) > 0
+
+    def test_research_with_empty_claim(self, pro_agent):
+        """Test that research handles empty claims gracefully."""
+        result = pro_agent.research("")
+        assert result is not None
+        # Should return empty or minimal result, not crash
+
+    def test_research_timeout_handling(self, pro_agent):
+        """Test that research handles timeouts gracefully."""
+        # Mock timeout scenario
+        pro_agent.tool_manager.search_web.side_effect = TimeoutError()
+        result = pro_agent.research("Test claim")
+        # Should handle timeout without crashing
+        assert result is not None
 ```
 
 **Coverage Target**: Maintain >80% code coverage
