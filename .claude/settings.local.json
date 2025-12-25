@@ -8,7 +8,12 @@
       "Bash(fi:*)",
       "Bash(python -m py_compile:*)",
       "Bash(python:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(uv run:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

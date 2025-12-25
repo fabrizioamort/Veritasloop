@@ -72,7 +72,6 @@ def start_phoenix_server():
 
         # Launch Phoenix server with persistent storage
         px.launch_app(
-            run_in_background=True,
             database_url=f"sqlite:///{db_path.absolute()}"
         )
 
@@ -125,8 +124,7 @@ async def root():
     return {"status": "online", "service": "VeritasLoop API"}
 
 @app.websocket("/ws/verify")
-@limiter.limit("10/minute")  # 10 verifications per minute per IP
-async def websocket_endpoint(websocket: WebSocket, request: Request):
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     logger.info("WebSocket connection established")
 

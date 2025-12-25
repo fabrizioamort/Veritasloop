@@ -70,6 +70,26 @@ def enable_tracing():
     try:
         from phoenix.otel import register
         from openinference.instrumentation.langchain import LangChainInstrumentor
+        import signal
+        from contextlib import contextmanager
+
+        @contextmanager
+        def timeout(seconds):
+            """Context manager for timeout on Windows and Unix."""
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Operation timed out")
+
+            # Note: signal.alarm doesn't work on Windows, so we skip timeout on Windows
+            import platform
+            if platform.system() != 'Windows':
+                old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(seconds)
+            try:
+                yield
+            finally:
+                if platform.system() != 'Windows':
+                    signal.alarm(0)
+                    signal.signal(signal.SIGALRM, old_handler)
 
         # Register Phoenix tracer
         tracer_provider = register(
@@ -77,8 +97,17 @@ def enable_tracing():
             endpoint="http://localhost:6006/v1/traces"
         )
 
-        # Instrument LangChain
-        LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+        # Instrument LangChain with timeout protection
+        # Note: On Windows, timeout protection is not available via signal
+        # If instrumentation hangs, user should disable Phoenix
+        logger.info("Instrumenting LangChain for tracing...")
+        try:
+            LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+            logger.info("LangChain instrumentation completed")
+        except Exception as instr_error:
+            logger.error(f"LangChain instrumentation failed: {instr_error}")
+            logger.warning("Phoenix tracing will be disabled")
+            return False
 
         _tracing_enabled = True
         logger.info("Phoenix tracing enabled successfully")
@@ -86,6 +115,9 @@ def enable_tracing():
     except ImportError as e:
         logger.warning(f"Phoenix tracing not available: {e}")
         logger.warning("Install with: pip install arize-phoenix openinference-instrumentation-langchain")
+        return False
+    except TimeoutError:
+        logger.error("Phoenix tracing initialization timed out - disabling tracing")
         return False
     except Exception as e:
         logger.error(f"Failed to enable tracing: {e}")
