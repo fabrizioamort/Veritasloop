@@ -2,6 +2,7 @@
 Unit tests for Streamlit app functionality.
 """
 
+from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
@@ -157,7 +158,7 @@ class TestStreamlitAppIntegration:
         """Test that app.py can be imported without errors."""
         try:
             # This will fail if there are syntax errors
-            with open('app.py', encoding='utf-8') as f:
+            with Path('app.py').open(encoding='utf-8') as f:
                 content = f.read()
                 # Basic syntax check
                 assert 'import streamlit as st' in content
@@ -169,7 +170,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_required_functions_present(self):
         """Test that required functions are present in app.py."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Check for required functions
@@ -190,7 +191,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_streamlit_components_used(self):
         """Test that key Streamlit components are used."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Check for key Streamlit components
@@ -214,7 +215,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_css_styling_present(self):
         """Test that custom CSS styling is present."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Check for CSS classes
@@ -234,7 +235,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_phoenix_integration(self):
         """Test that Phoenix integration features are present."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Check for Phoenix-related code
@@ -254,7 +255,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_phoenix_auto_start_logic(self):
         """Test that Phoenix auto-start logic is implemented."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Verify auto-start workflow
@@ -266,7 +267,7 @@ class TestStreamlitAppIntegration:
     @pytest.mark.integration
     def test_phoenix_status_indicator(self):
         """Test that Phoenix status indicator is in sidebar."""
-        with open('app.py', encoding='utf-8') as f:
+        with Path('app.py').open(encoding='utf-8') as f:
             content = f.read()
 
         # Check for status indicator

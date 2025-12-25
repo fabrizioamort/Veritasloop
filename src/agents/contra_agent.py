@@ -108,11 +108,11 @@ class ContraAgent(BaseAgent):
             user_prompt = f"""
             Analyze this claim: "{claim.core_claim}"
             Original input: "{claim.raw_input}"
-            
+
             Available sources:
             {formatted_sources}
-            
-            Generate an initial skeptical opening statement for the debate. 
+
+            Generate an initial skeptical opening statement for the debate.
             Set the stage by questioning the validity or context of the claim.
             Speak naturally and engage the audience.
             """
@@ -122,12 +122,12 @@ class ContraAgent(BaseAgent):
             user_prompt = f"""
             The PRO agent argued:
             "{last_msg.content}"
-            
+
             Claim: "{claim.core_claim}"
-            
+
             Available sources:
             {formatted_sources}
-            
+
             Generate a rebuttal. Directly address the PRO agent's points.
             Point out logical fallacies, missing context, or contradictory evidence using a conversational but critical tone.
             """
@@ -164,10 +164,10 @@ class ContraAgent(BaseAgent):
     def _detect_fallacies(self, argument: str) -> list[str]:
         """
         Helper to detect logical fallacies in an argument.
-        
+
         Args:
             argument: The text to analyze.
-            
+
         Returns:
             List of detected fallacies.
         """

@@ -1,8 +1,10 @@
 import os
 import sys
+from pathlib import Path
 
 # Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+project_root = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(project_root))
 
 # Set dummy API keys for testing to prevent `get_llm` from crashing during import/collection
 # if it is called somewhere.

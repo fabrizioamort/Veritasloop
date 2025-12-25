@@ -37,7 +37,7 @@ def validate_url(url: str) -> bool:
             result.netloc,
             len(url) < 2048
         ])
-    except:
+    except Exception:  # noqa: S110
         return False
 
 def get_llm():

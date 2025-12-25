@@ -16,7 +16,7 @@ from src.orchestrator.graph import get_app
 def mock_llm_response(messages):
     # Simplified mock LLM to return a plausible response based on agent
     system_prompt = messages[0].content
-    human_prompt = messages[1].content
+    # human_prompt = messages[1].content  # Not used in mock logic
 
     if "You are a meticulous institutional analyst" in system_prompt: # PRO
         return MagicMock(content="The claim is supported by institutional data.")
@@ -156,7 +156,7 @@ def patch_agents(mocker):
 def test_full_pipeline(claim_text, expected_verdict_key, mock_env):
     """
     Tests the full pipeline from claim to verdict for different scenarios.
-    
+
     This is an integration test that runs the entire LangGraph.
     The external dependencies (LLMs, search tools) are mocked to ensure
     the test is fast, repeatable, and focuses on the integration logic.

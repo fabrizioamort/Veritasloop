@@ -62,8 +62,12 @@ unfixable = []
 [tool.ruff.lint.per-file-ignores]
 # Ignore unused imports in __init__.py files
 "__init__.py" = ["F401"]
-# Tests can have additional flexibility
-"tests/**/*.py" = ["N802", "N803", "B011"]
+# Tests can have additional flexibility (SIM117: nested with for pytest.raises is intentional)
+"tests/**/*.py" = ["N802", "N803", "B011", "SIM117"]
+# api/main.py: E402 imports after env setup is intentional, N815 for API compatibility
+"api/main.py" = ["E402", "N815"]
+# src/utils/claim_extractor.py: E402 imports after env setup and conditional imports
+"src/utils/claim_extractor.py" = ["E402"]
 
 [tool.ruff.lint.isort]
 # Group imports correctly

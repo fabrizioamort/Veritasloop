@@ -448,5 +448,5 @@ def save_metrics_to_file(
     if metadata:
         output["metadata"] = metadata
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with Path(output_path).open('w', encoding='utf-8') as f:
         json.dump(output, f, indent=2, ensure_ascii=False)

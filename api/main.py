@@ -1,4 +1,5 @@
 
+import contextlib
 import json
 import socket
 from pathlib import Path
@@ -237,10 +238,9 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("WebSocket disconnected")
     except Exception as e:
         safe_message = sanitize_error_message(e, "An unexpected WebSocket error occurred.")
-        try:
+        with contextlib.suppress(Exception):
+            # Try to send error message, but connection might be already closed
             await websocket.send_json({
                 "type": "error",
                 "message": safe_message
             })
-        except:
-            pass  # Connection might be already closed

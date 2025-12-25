@@ -309,7 +309,7 @@ class TestMetricsSummaryAndExport:
 
             # Verify content
             import json
-            with open(output_file) as f:
+            with output_file.open() as f:
                 data = json.load(f)
 
             assert "timestamp" in data

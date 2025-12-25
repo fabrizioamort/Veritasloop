@@ -367,7 +367,7 @@ def run_verification(
     start_time = time.time()
 
     # Initialize performance metrics
-    metrics = init_metrics()
+    init_metrics()
 
     # Enable Phoenix tracing if requested
     if enable_trace:
