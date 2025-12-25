@@ -1,5 +1,6 @@
 import sys
 import os
+import pytest
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -12,3 +13,13 @@ os.environ.setdefault("BRAVE_SEARCH_API_KEY", "dummy-key")
 os.environ.setdefault("NEWS_API_KEY", "dummy-key")
 os.environ.setdefault("REDDIT_CLIENT_ID", "dummy-id")
 os.environ.setdefault("REDDIT_CLIENT_SECRET", "dummy-secret")
+
+
+def pytest_addoption(parser):
+    """Add custom pytest command line options."""
+    parser.addoption(
+        "--run-integration",
+        action="store_true",
+        default=False,
+        help="Run real integration tests (slow, requires API keys)"
+    )

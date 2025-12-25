@@ -17,6 +17,16 @@
 
 ## 📢 Latest Updates
 
+**Version 0.4.1 - December 2025 - Enhanced Testing & Quality 🧪**
+- 🧪 **Comprehensive Test Suite**: End-to-end integration tests with full pipeline validation
+- ✅ **Test Validation Helpers**: URL validation, verdict structure checking, source validation
+- 📊 **Test Coverage**: 80%+ code coverage with unit, integration, and validation tests
+- 🎯 **Parametrized Tests**: Three claim scenarios (TRUE, FALSE, Ambiguous)
+- 🚀 **Fast Mocked Tests**: <5 second test execution for CI/CD pipelines
+- 🔬 **Optional Real Integration Tests**: Full API testing capability (opt-in)
+- 📝 **Enhanced Documentation**: Comprehensive testing guides in README and DEVELOPMENT.md
+- 🛠️ **Developer Tools**: Linting (ruff, ESLint), formatting (Black), type checking (mypy)
+
 **Version 0.4.0 - December 2025 - Production Ready 🚀**
 - 🔒 **Enterprise-Grade Security**: CORS configuration, input validation, URL sanitization, error message sanitization
 - ⚡ **Enhanced Stability**: HTTP timeouts, LLM error handling, WebSocket reconnection, cache size limits
@@ -469,6 +479,92 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 ---
 
+## 🧪 Testing
+
+VeritasLoop includes a comprehensive test suite with unit tests, integration tests, and validation helpers.
+
+### Running Tests
+
+**Run all tests:**
+```bash
+# Using uv (recommended)
+uv run python -m pytest
+
+# With coverage report
+uv run python -m pytest --cov=src --cov-report=html
+
+# Verbose output
+uv run python -m pytest -v
+```
+
+**Run specific test file:**
+```bash
+uv run python -m pytest tests/test_full_pipeline.py -v
+```
+
+**Run specific test:**
+```bash
+uv run python -m pytest tests/test_full_pipeline.py::test_url_validation -v
+```
+
+### Test Types
+
+**1. Unit Tests**
+- Individual agent tests (`test_pro_agent.py`, `test_contra_agent.py`, `test_judge_agent.py`)
+- Tool tests (`test_search_tools.py`, `test_content_tools.py`)
+- Schema validation tests (`test_schemas.py`)
+
+**2. Integration Tests**
+- End-to-end pipeline tests (`test_full_pipeline.py`)
+- Tests three claim scenarios:
+  - ✅ Known TRUE claim (Emilia earthquake 2012)
+  - ❌ Known FALSE claim (Italy population claim)
+  - ⚠️ Ambiguous claim (Tax increases 2024)
+- Validates: graph completion, verdict structure, source URLs, execution time
+
+**3. Real Integration Tests (Optional)**
+- Marked with `@pytest.mark.integration` and `@pytest.mark.skip`
+- Uses actual API calls (slow, requires API keys)
+- Enable by removing `@pytest.mark.skip` decorator in `tests/test_full_pipeline.py`
+
+### Code Quality
+
+**Linting:**
+```bash
+# Python linting
+ruff check src/ tests/ api/
+
+# Auto-fix issues
+ruff check --fix src/
+
+# JavaScript linting
+cd frontend && npm run lint
+```
+
+**Formatting:**
+```bash
+# Python formatting
+black src/ tests/ api/
+
+# Check without modifying
+black --check src/
+```
+
+**Type Checking:**
+```bash
+# Python type checking
+mypy src/ --ignore-missing-imports
+```
+
+### Coverage Target
+
+- **Target**: >80% code coverage
+- **View coverage report**: `open htmlcov/index.html` (after running `pytest --cov`)
+
+**See [Development Guide](docs/DEVELOPMENT.md) for detailed testing guidelines.**
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
@@ -478,7 +574,8 @@ Contributions are welcome! Please:
 3. Create a feature branch
 4. Write tests for new functionality
 5. Follow code style (Black for Python, ESLint for JS)
-6. Submit a pull request
+6. Run tests and linting before submitting
+7. Submit a pull request
 
 ---
 
