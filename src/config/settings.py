@@ -4,8 +4,8 @@ This module uses pydantic-settings to manage all environment variables
 and configuration in a type-safe, validated manner.
 """
 
+
 from pydantic_settings import BaseSettings
-from typing import List
 
 
 class Settings(BaseSettings):
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
         case_sensitive = False
 
     @property
-    def allowed_origins_list(self) -> List[str]:
+    def allowed_origins_list(self) -> list[str]:
         """Parse allowed origins into a list."""
         return [origin.strip() for origin in self.allowed_origins.split(",")]
 

@@ -4,10 +4,9 @@ This module validates required and optional environment variables
 on application startup to ensure proper configuration.
 """
 
+import logging
 import os
 import sys
-from typing import List, Tuple
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ def validate_required_env_vars() -> None:
         logger.info(f"Optional variables present: {', '.join(optional_vars)}")
 
 
-def validate_config_values() -> List[Tuple[str, str]]:
+def validate_config_values() -> list[tuple[str, str]]:
     """Validate configuration values for correctness.
 
     Returns:

@@ -1,8 +1,10 @@
+import hashlib
 import time
 import unittest
-import hashlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 from src.utils.tool_manager import ToolManager
+
 
 class TestToolManager(unittest.TestCase):
     """

@@ -2,10 +2,10 @@
 Tests for Phoenix tracing integration.
 """
 
-import pytest
 import sys
-from unittest.mock import patch, MagicMock, Mock
-from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 def test_enable_tracing_success():

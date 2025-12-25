@@ -7,9 +7,19 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from src.agents.judge_agent import JudgeAgent
-from src.models.schemas import (AgentType, Claim, ClaimCategory, DebateMessage,
-                              Entities, GraphState, MessageType, Reliability,
-                              Source, Verdict, VerdictType)
+from src.models.schemas import (
+    AgentType,
+    Claim,
+    ClaimCategory,
+    DebateMessage,
+    Entities,
+    GraphState,
+    MessageType,
+    Reliability,
+    Source,
+    Verdict,
+    VerdictType,
+)
 from src.utils.tool_manager import ToolManager
 
 
@@ -110,7 +120,7 @@ class TestJudgeAgent(unittest.TestCase):
         mock_chain_result = MagicMock()
         mock_chain_result.invoke.return_value = mock_verdict
         mock_prompt.__or__.return_value = mock_chain_result
-        
+
         mock_prompt_template_class.from_messages.return_value = mock_prompt
 
         # Call the think method
@@ -118,7 +128,7 @@ class TestJudgeAgent(unittest.TestCase):
 
         # Assertions
         self.assertIn("verdict", result)
-        
+
         verdict_result = Verdict.model_validate(result["verdict"])
         self.assertEqual(verdict_result.verdict, VerdictType.PARZIALMENTE_VERO)
         self.assertEqual(verdict_result.confidence_score, 75.0)
@@ -135,7 +145,7 @@ class TestJudgeAgent(unittest.TestCase):
         mock_chain_result = MagicMock()
         mock_chain_result.invoke.side_effect = Exception("LLM failed")
         mock_prompt.__or__.return_value = mock_chain_result
-        
+
         mock_prompt_template_class.from_messages.return_value = mock_prompt
 
         # Call the think method
@@ -143,7 +153,7 @@ class TestJudgeAgent(unittest.TestCase):
 
         # Assertions
         self.assertIn("verdict", result)
-        
+
         verdict_result = Verdict.model_validate(result["verdict"])
         self.assertEqual(verdict_result.verdict, VerdictType.NON_VERIFICABILE)
         self.assertEqual(verdict_result.confidence_score, 0.0)

@@ -4,8 +4,10 @@ Unit tests for the BaseAgent class.
 
 import unittest
 from unittest.mock import MagicMock, patch
+
 from src.agents.base_agent import BaseAgent
-from src.models.schemas import GraphState, DebateMessage, AgentType, MessageType
+from src.models.schemas import AgentType, DebateMessage, GraphState, MessageType
+
 
 class ConcreteAgent(BaseAgent):
     """A concrete implementation of BaseAgent for testing purposes."""

@@ -1,9 +1,8 @@
-import os
 import logging
-from typing import Optional
-from dotenv import load_dotenv
+import os
 from urllib.parse import urlparse
 
+from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from newspaper import Article, ArticleException
 
@@ -23,7 +22,7 @@ try:
 except ImportError:
     HAS_OPENAI = False
 
-from src.models.schemas import Claim, ClaimCategory, Entities
+from src.models.schemas import Claim
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -48,23 +47,23 @@ def get_llm():
     """
     if HAS_ANTHROPIC and os.getenv("ANTHROPIC_API_KEY"):
         return ChatAnthropic(
-            model="claude-3-sonnet-20240229", 
+            model="claude-3-sonnet-20240229",
             temperature=0
         )
     elif HAS_OPENAI and os.getenv("OPENAI_API_KEY"):
         return ChatOpenAI(
-            model="gpt-5-nano", 
+            model="gpt-5-nano",
             temperature=0
         )
     elif os.getenv("OPENAI_API_KEY"): # Fallback if langchain-openai not found but key exists (using community/deprecated)
          from langchain.chat_models import ChatOpenAI as LegacyChatOpenAI
          return LegacyChatOpenAI(model="gpt-5-mini", temperature=0)
-    
-    # If we are here, we might have issues. 
+
+    # If we are here, we might have issues.
     # For now, let's assume one is available or raise error
     if not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("OPENAI_API_KEY"):
          raise ValueError("No API keys found for Anthropic or OpenAI. Please set ANTHROPIC_API_KEY or OPENAI_API_KEY in .env")
-    
+
     raise ImportError("Could not import LangChain LLM classes. Ensure langchain-anthropic or langchain-openai is installed.")
 
 
@@ -137,29 +136,29 @@ def extract_from_url(url: str) -> Claim:
         article = Article(url)
         article.download()
         article.parse()
-        
+
         # Combine title and text for better context, but keep it reasonable length if needed
         full_text = f"{article.title}\n\n{article.text}"
-        
+
         # If text is too long, we might want to truncate, but LLMs handle large context well nowadays.
         # Let's limit to first 5000 chars to be safe on tokens/cost if it's huge.
         if len(full_text) > 10000:
              full_text = full_text[:10000]
 
         logger.info(f"Extracted text from {url} (length: {len(full_text)})")
-        
+
         claim = extract_from_text(full_text)
         # We might want to store the URL in the raw_input or a separate field if we modify the model later.
-        # For now, TASK says: "raw_input: Original text or URL". 
-        # So we can set raw_input to the URL? 
-        # schema says raw_input is str. 
+        # For now, TASK says: "raw_input: Original text or URL".
+        # So we can set raw_input to the URL?
+        # schema says raw_input is str.
         # Task 1.2 says: "Extract headline and body -> Pass to extract_from_text()"
-        # So extract_from_text returns a Claim with raw_input=full_text. 
+        # So extract_from_text returns a Claim with raw_input=full_text.
         # We should probably update raw_input to be the URL for tracking purposes?
         # The schema definition for raw_input is "Original text or URL".
         # Let's set it to the URL since that was the input to THIS function.
         claim.raw_input = url
-        
+
         return claim
 
     except ArticleException as e:

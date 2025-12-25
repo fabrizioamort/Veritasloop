@@ -2,18 +2,19 @@
 This module provides tools for extracting content from URLs and assessing
 the reliability of the sources.
 """
-from typing import Dict, Any, List
-from urllib.parse import urlparse
 import logging
+from typing import Any
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 from newspaper import Article, ArticleException
+
 from src.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-def fetch_article(url: str) -> Dict[str, Any]:
+def fetch_article(url: str) -> dict[str, Any]:
     """
     Fetches and parses an article from a URL.
 
@@ -88,7 +89,7 @@ def assess_source_reliability(url: str) -> str:
     # Whitelist of high-reliability domains
     high_reliability_domains = [
         # Major International News
-        "reuters.com", "apnews.com", "afp.com", "bbc.com", "nytimes.com", 
+        "reuters.com", "apnews.com", "afp.com", "bbc.com", "nytimes.com",
         "wsj.com", "theguardian.com", "lemonde.fr", "elpais.com",
         # Major Italian News
         "ansa.it", "corriere.it", "repubblica.it", "lastampa.it", "ilsole24ore.com",
@@ -96,7 +97,7 @@ def assess_source_reliability(url: str) -> str:
         "gov.it", "europa.eu", "istat.it", "protezionecivile.gov.it",
         "salute.gov.it", "mise.gov.it"
     ]
-    
+
     # Check if the domain (or a subdomain of it) is in the high-reliability list
     if any(domain.endswith(d) for d in high_reliability_domains):
         return "high"
@@ -104,5 +105,5 @@ def assess_source_reliability(url: str) -> str:
     # Basic checks for medium vs low
     if parsed_url.scheme == "https":
         return "medium"
-        
+
     return "low"

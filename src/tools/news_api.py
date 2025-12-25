@@ -1,6 +1,7 @@
 # a news_api.py file
-import os
 import logging
+import os
+
 from newsapi import NewsApiClient
 
 logger = logging.getLogger(__name__)

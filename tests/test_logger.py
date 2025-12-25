@@ -8,22 +8,24 @@ Tests cover:
 - Log performance decorator
 """
 
-import pytest
 import logging
 import tempfile
 import time
 from pathlib import Path
+
+import pytest
+
 from src.utils.logger import (
-    setup_logging,
-    get_logger,
-    set_request_context,
-    clear_request_context,
-    init_metrics,
-    get_metrics,
-    log_performance,
-    log_metrics_summary,
-    save_metrics_to_file,
     PerformanceMetrics,
+    clear_request_context,
+    get_logger,
+    get_metrics,
+    init_metrics,
+    log_metrics_summary,
+    log_performance,
+    save_metrics_to_file,
+    set_request_context,
+    setup_logging,
 )
 
 
@@ -307,7 +309,7 @@ class TestMetricsSummaryAndExport:
 
             # Verify content
             import json
-            with open(output_file, 'r') as f:
+            with open(output_file) as f:
                 data = json.load(f)
 
             assert "timestamp" in data

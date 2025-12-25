@@ -1,24 +1,23 @@
 
 import json
-import logging
 import socket
-import os
 from pathlib import Path
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any
+
 from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Import centralized settings and validation
-from src.config.settings import settings
 from src.config.env_validator import validate_all
+from src.config.settings import settings
+
 
 # Pydantic model for WebSocket request validation
 class VerificationRequest(BaseModel):
@@ -30,11 +29,11 @@ class VerificationRequest(BaseModel):
     proPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
     contraPersonality: str = Field(default="ASSERTIVE", pattern="^(PASSIVE|ASSERTIVE|AGGRESSIVE)$")
 
-from src.orchestrator.graph import get_app, enable_tracing
+from api.server_utils import sanitize_error_message, serialize_for_json
 from src.models.schemas import Claim, Entities, GraphState
+from src.orchestrator.graph import enable_tracing, get_app
 from src.utils.claim_extractor import extract_from_url
 from src.utils.logger import get_logger
-from api.server_utils import serialize_for_json, sanitize_error_message
 
 # Configure logger
 logger = get_logger("api")
@@ -131,7 +130,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         # Wait for initialization message and validate it
         data = await websocket.receive_text()
-        
+
         try:
             request = VerificationRequest(**json.loads(data))
         except ValidationError as e:
@@ -148,8 +147,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
         # 1. Extract Claim
         await websocket.send_json({
-            "type": "status", 
-            "message": "Analyzing input...", 
+            "type": "status",
+            "message": "Analyzing input...",
             "node": "initialize"
         })
 
@@ -185,10 +184,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
         # 3. Stream from LangGraph
         graph_app = get_app()
-        
+
         await websocket.send_json({
-            "type": "status", 
-            "message": "Starting Multi-Agent System...", 
+            "type": "status",
+            "message": "Starting Multi-Agent System...",
             "node": "graph_start"
         })
 
@@ -197,14 +196,14 @@ async def websocket_endpoint(websocket: WebSocket):
             # update is a dict where keys are node names and values are state updates
             node_name = list(update.keys())[0]
             node_data = update[node_name]
-            
+
             # Prepare payload for frontend
             payload = {
                 "type": "update",
                 "node": node_name,
                 "data": serialize_for_json(node_data)
             }
-            
+
             # Send specific event types based on node
             if node_name == "extract":
                 payload["description"] = "Claim extracted and analyzed"
@@ -216,7 +215,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 round_num = node_data.get('round_count', 0)
                 payload["description"] = f"Debate Round {round_num}/3 (CONTRA)"
             elif node_name == "pro_node":
-                payload["description"] = f"Debate Round (PRO)"
+                payload["description"] = "Debate Round (PRO)"
             elif node_name == "debate":
                 round_num = node_data.get('round_count', 0)
                 payload["description"] = f"Debate Round {round_num}/3"

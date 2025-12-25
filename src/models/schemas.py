@@ -6,7 +6,7 @@ Defines the core data structures used for claims, sources, debate messages, and 
 import operator
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, List, Optional
+from typing import Annotated
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
@@ -58,9 +58,9 @@ class Source(BaseModel):
     title: str
     snippet: str
     reliability: Reliability
-    timestamp: Optional[datetime] = None
-    agent: Optional[AgentType] = None
-    relevance_score: Optional[float] = Field(None, ge=0.0, le=1.0)
+    timestamp: datetime | None = None
+    agent: AgentType | None = None
+    relevance_score: float | None = Field(None, ge=0.0, le=1.0)
 
     @field_validator("timestamp", mode="before")
     @classmethod
@@ -76,10 +76,10 @@ class Source(BaseModel):
 
 class Entities(BaseModel):
     """Entities extracted from the claim."""
-    people: List[str] = Field(default_factory=list)
-    places: List[str] = Field(default_factory=list)
-    dates: List[str] = Field(default_factory=list)
-    organizations: List[str] = Field(default_factory=list)
+    people: list[str] = Field(default_factory=list)
+    places: list[str] = Field(default_factory=list)
+    dates: list[str] = Field(default_factory=list)
+    organizations: list[str] = Field(default_factory=list)
 
 
 class Claim(BaseModel):
@@ -97,7 +97,7 @@ class DebateMessage(BaseModel):
     agent: AgentType
     message_type: MessageType
     content: str
-    sources: List[Source] = Field(default_factory=list)
+    sources: list[Source] = Field(default_factory=list)
     confidence: float = Field(..., ge=0, le=100)
 
 
@@ -105,8 +105,8 @@ class VerdictAnalysis(BaseModel):
     """Detailed analysis of the verdict."""
     pro_strength: str
     contra_strength: str
-    consensus_facts: List[str]
-    disputed_points: List[str]
+    consensus_facts: list[str]
+    disputed_points: list[str]
 
 
 class VerdictMetadata(BaseModel):
@@ -122,7 +122,7 @@ class Verdict(BaseModel):
     confidence_score: float = Field(..., ge=0, le=100)
     summary: str
     analysis: VerdictAnalysis
-    sources_used: List[Source]
+    sources_used: list[Source]
     metadata: VerdictMetadata
 
 
@@ -142,12 +142,12 @@ class GraphState(TypedDict):
         pro_personality: Personality style for PRO agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
         contra_personality: Personality style for CONTRA agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
     """
-    claim: Optional[Claim]
-    messages: Annotated[List[DebateMessage], operator.add]
-    pro_sources: List[Source]
-    contra_sources: List[Source]
+    claim: Claim | None
+    messages: Annotated[list[DebateMessage], operator.add]
+    pro_sources: list[Source]
+    contra_sources: list[Source]
     round_count: int
-    verdict: Optional[dict]
+    verdict: dict | None
     max_iterations: int
     max_searches: int
     language: str

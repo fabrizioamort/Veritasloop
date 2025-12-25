@@ -1,7 +1,7 @@
 import hashlib
 import time
-from typing import Dict, List, Any
 from collections import OrderedDict
+from typing import Any
 
 from src.tools.search_tools import search
 from src.utils.logger import get_logger, get_metrics
@@ -28,8 +28,8 @@ class ToolManager:
         Args:
             ttl (int): The time-to-live for cache entries in seconds. Defaults to 3600 (1 hour).
         """
-        self.url_cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
-        self.search_cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self.url_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+        self.search_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
         self.ttl = ttl
 
     def _add_to_cache(self, cache: OrderedDict, key: str, value: Any) -> None:
@@ -87,7 +87,7 @@ class ToolManager:
         self._add_to_cache(self.url_cache, url, {'content': content, 'timestamp': timestamp})
         return content
 
-    def search_web(self, query: str, tool: str) -> List[Dict]:
+    def search_web(self, query: str, tool: str) -> list[dict]:
         """
         Performs a web search, using a cache to avoid redundant searches.
 
@@ -103,7 +103,7 @@ class ToolManager:
 
         if query_hash in self.search_cache and (timestamp - self.search_cache[query_hash]['timestamp']) < self.ttl:
             logger.debug(
-                f"Cache hit for search",
+                "Cache hit for search",
                 extra={"query": query[:50], "tool": tool}
             )
 
@@ -115,7 +115,7 @@ class ToolManager:
             return self.search_cache[query_hash]['results']
 
         logger.info(
-            f"Cache miss for search, executing query",
+            "Cache miss for search, executing query",
             extra={"query": query[:50], "tool": tool}
         )
 
@@ -133,7 +133,7 @@ class ToolManager:
                 metrics.add_api_call(tool)
 
             logger.info(
-                f"Search completed successfully",
+                "Search completed successfully",
                 extra={"tool": tool, "results_count": len(results)}
             )
         except NotImplementedError:
@@ -167,6 +167,6 @@ class ToolManager:
         self.search_cache.clear()
 
         logger.info(
-            f"Caches cleared",
+            "Caches cleared",
             extra={"url_entries": url_count, "search_entries": search_count}
         )

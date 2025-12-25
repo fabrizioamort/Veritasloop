@@ -1,6 +1,7 @@
 # reddit_api.py
-import os
 import logging
+import os
+
 import praw
 
 logger = logging.getLogger(__name__)

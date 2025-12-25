@@ -17,15 +17,14 @@ Example:
     ...     result = extract_claim(text)
 """
 
+import json
 import logging
+import threading
 import time
-from pathlib import Path
-from typing import Optional, Dict, Any
 from contextlib import contextmanager
 from datetime import datetime
-import json
-import threading
-
+from pathlib import Path
+from typing import Any
 
 # Thread-local storage for request context
 _thread_local = threading.local()
@@ -44,7 +43,7 @@ class PerformanceMetrics:
 
     def __init__(self):
         """Initialize performance metrics tracker."""
-        self.metrics: Dict[str, Any] = {
+        self.metrics: dict[str, Any] = {
             "timings": {},
             "api_calls": {},
             "cache": {"hits": 0, "misses": 0},
@@ -111,7 +110,7 @@ class PerformanceMetrics:
             "timestamp": datetime.now().isoformat()
         })
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """
         Get complete metrics summary.
 
@@ -176,7 +175,7 @@ class ContextFilter(logging.Filter):
 
 def setup_logging(
     level: str = "INFO",
-    log_dir: Optional[str] = None,
+    log_dir: str | None = None,
     enable_console: bool = True,
     enable_file: bool = True
 ) -> None:
@@ -285,7 +284,7 @@ def clear_request_context() -> None:
     _thread_local.request_id = None
 
 
-def get_metrics() -> Optional[PerformanceMetrics]:
+def get_metrics() -> PerformanceMetrics | None:
     """
     Get performance metrics for current request.
 
@@ -308,7 +307,7 @@ def init_metrics() -> PerformanceMetrics:
 
 
 @contextmanager
-def log_performance(operation: str, logger: Optional[logging.Logger] = None):
+def log_performance(operation: str, logger: logging.Logger | None = None):
     """
     Context manager to log operation performance.
 
@@ -356,7 +355,7 @@ def log_performance(operation: str, logger: Optional[logging.Logger] = None):
             metrics.add_timing(operation, duration)
 
 
-def log_metrics_summary(logger: Optional[logging.Logger] = None) -> Dict[str, Any]:
+def log_metrics_summary(logger: logging.Logger | None = None) -> dict[str, Any]:
     """
     Log and return performance metrics summary.
 
@@ -423,7 +422,7 @@ def log_metrics_summary(logger: Optional[logging.Logger] = None) -> Dict[str, An
 
 def save_metrics_to_file(
     output_path: str,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 ) -> None:
     """
     Save metrics summary to JSON file.

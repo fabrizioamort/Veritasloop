@@ -1,15 +1,20 @@
-import logging
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import Any
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agents.base_agent import BaseAgent
+from src.config.personalities import get_agent_name, get_personality_prompt
 from src.models.schemas import (
-    GraphState, DebateMessage, AgentType, MessageType, Source, Reliability
+    AgentType,
+    DebateMessage,
+    GraphState,
+    MessageType,
+    Reliability,
+    Source,
 )
 from src.utils.tool_manager import ToolManager
-from src.config.personalities import get_agent_name, get_personality_prompt
+
 
 class ProAgent(BaseAgent):
     """
@@ -39,7 +44,7 @@ class ProAgent(BaseAgent):
         # 1. Search Strategy
         # Prioritize official/institutional sources
         search_results = self.search(claim.core_claim, strategy="institutional", max_searches=max_searches)
-        
+
         # 2. Construct Prompt
         formatted_results = "\n".join([
             f"- [{res.get('title', 'No Title')}]({res.get('url', 'No URL')}): {res.get('snippet', 'No snippet')}"
@@ -64,7 +69,7 @@ Speak naturally, as if you are in a live debate. Don't simply list facts; weave 
 
 IMPORTANT: Your output must be in {language}.
 """
-        
+
         # 3. Call LLM with error handling
         try:
             response = self.llm.invoke([
@@ -103,7 +108,7 @@ IMPORTANT: Your output must be in {language}.
             confidence=confidence if confidence == 0.0 else 85.0  # 0 on error, 85 on success
         )
 
-    def search(self, query: str, strategy: str, max_searches: int = -1) -> List[Dict]:
+    def search(self, query: str, strategy: str, max_searches: int = -1) -> list[dict]:
         """
         Overrides base search to implement institutional search strategy.
         """

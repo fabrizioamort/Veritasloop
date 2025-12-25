@@ -1,12 +1,19 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from langchain_core.messages import AIMessage
 
 from src.agents.pro_agent import ProAgent
 from src.models.schemas import (
-    Claim, ClaimCategory, GraphState, DebateMessage, AgentType, MessageType, Source
+    AgentType,
+    Claim,
+    ClaimCategory,
+    DebateMessage,
+    GraphState,
+    MessageType,
 )
 from src.utils.tool_manager import ToolManager
+
 
 @pytest.fixture
 def mock_llm():
@@ -51,7 +58,7 @@ def test_think_argument(pro_agent, mock_tool_manager):
     assert message.content == "This is a strong argument supporting the claim."
     assert len(message.sources) > 0
     assert str(message.sources[0].url) == "https://gov.it/news"
-    
+
     # Verify search was called with correct strategy
     mock_tool_manager.search_web.assert_called()
 

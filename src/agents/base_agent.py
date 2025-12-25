@@ -5,7 +5,7 @@ Defines the BaseAgent abstract class for all agents in the VeritasLoop system.
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any
+from typing import Any
 
 from src.models.schemas import DebateMessage, GraphState
 from src.utils.tool_manager import ToolManager
@@ -51,7 +51,7 @@ class BaseAgent(ABC):
         """
         pass
 
-    def search(self, query: str, strategy: str, max_searches: int = -1) -> List[Dict]:
+    def search(self, query: str, strategy: str, max_searches: int = -1) -> list[dict]:
         """
         Performs a search using a tiered strategy.
 

@@ -1,8 +1,10 @@
 # test_news_api.py
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.tools import news_api
+
 
 class TestNewsApi(unittest.TestCase):
 

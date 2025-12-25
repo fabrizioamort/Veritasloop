@@ -1,13 +1,15 @@
-import os
-import requests
 import logging
-from typing import List, Dict, Any
+import os
+from typing import Any
+
+import requests
 from bs4 import BeautifulSoup
+
 from src.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
+def brave_search(query: str, count: int = 10) -> list[dict[str, Any]]:
     """
     Performs a search using the Brave Search API.
 
@@ -68,7 +70,7 @@ def brave_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
         logger.error(f"Error during Brave search: {e}")
         return []
 
-def duckduckgo_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
+def duckduckgo_search(query: str, count: int = 10) -> list[dict[str, Any]]:
     """
     Performs a search using DuckDuckGo and scrapes the results.
     This is a fallback and does not require an API key.
@@ -120,7 +122,7 @@ def duckduckgo_search(query: str, count: int = 10) -> List[Dict[str, Any]]:
         logger.error(f"Error during DuckDuckGo search: {e}")
         return []
 
-def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
+def google_pse_factcheck(query: str, count: int = 10) -> list[dict[str, Any]]:
     """
     Performs a search using a Google Programmable Search Engine
     configured for fact-checking websites.
@@ -183,7 +185,7 @@ def google_pse_factcheck(query: str, count: int = 10) -> List[Dict[str, Any]]:
         logger.error(f"Error during Google PSE search: {e}")
         return []
 
-def search(query: str, tool: str = "brave", count: int = 10) -> List[Dict[str, Any]]:
+def search(query: str, tool: str = "brave", count: int = 10) -> list[dict[str, Any]]:
     """
     A unified interface to access different search tools.
 

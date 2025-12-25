@@ -3,7 +3,8 @@ Unit tests for the search tools module.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.tools.search_tools import search
 
 

@@ -1,15 +1,23 @@
 
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from src.models.schemas import Claim, Entities, GraphState, Verdict, DebateMessage, AgentType, MessageType, Source, Reliability
+import pytest
+
+from src.models.schemas import (
+    AgentType,
+    Claim,
+    DebateMessage,
+    Entities,
+    MessageType,
+)
 from src.orchestrator.graph import get_app
+
 
 def mock_llm_response(messages):
     # Simplified mock LLM to return a plausible response based on agent
     system_prompt = messages[0].content
     human_prompt = messages[1].content
-    
+
     if "You are a meticulous institutional analyst" in system_prompt: # PRO
         return MagicMock(content="The claim is supported by institutional data.")
     elif "You are a critical fact-checker" in system_prompt: # CONTRA
@@ -45,12 +53,12 @@ def mock_env(mocker):
         "rounds_completed": 3,
         "total_sources_checked": 2
     })
-    
+
     # Mock the LLM inside the agents
     # Removed invalid patching of instance attributes on the class
-    # mocker.patch('src.agents.pro_agent.ProAgent.llm', ...) 
+    # mocker.patch('src.agents.pro_agent.ProAgent.llm', ...)
     # The agents' think method is mocked entirely below, so this is not needed.
-    
+
     # The judge's chain is more complex, so we patch the `think` method directly
     # to return a controlled verdict dictionary.
     mock_verdict = {
@@ -83,15 +91,14 @@ def mock_env(mocker):
 
 @pytest.fixture(autouse=True)
 def patch_agents(mocker):
-    from src.models.schemas import DebateMessage, AgentType, MessageType, Source, Reliability
 
     # Mock the LLM and ToolManager used by agents to avoid real calls
     mocker.patch('src.orchestrator.graph.get_llm', return_value=MagicMock())
     mocker.patch('src.orchestrator.graph.ToolManager', return_value=MagicMock())
-    
+
     # We need to mock ProAgent, ContraAgent, JudgeAgent classes where they are used.
     # They are imported in src.orchestrator.graph AND src.orchestrator.debate
-    
+
     # Mock ProAgent.think
     def mock_pro_think(state, *args, **kwargs):
         return DebateMessage(
@@ -108,7 +115,7 @@ def patch_agents(mocker):
     def mock_contra_think(state, *args, **kwargs):
         return DebateMessage(
             round=state['round_count'],
-            agent=AgentType.CONTRA, 
+            agent=AgentType.CONTRA,
             message_type=MessageType.REBUTTAL,
             content=f"CONTRA Rebuttal for {state['claim'].core_claim}",
             sources=[],
@@ -171,15 +178,15 @@ def test_full_pipeline(claim_text, expected_verdict_key, mock_env):
     # 3. Validate the output
     assert final_state is not None
     assert "verdict" in final_state
-    
+
     verdict_data = final_state["verdict"]
-    
+
     # Validate verdict structure
     assert "verdict" in verdict_data
     assert "confidence_score" in verdict_data
     assert "summary" in verdict_data
     assert isinstance(verdict_data["confidence_score"], float)
-    
+
     # Because we mocked the judge's response, we can't assert the *actual* verdict
     # for each specific claim. The goal of this test is to ensure the graph
     # runs end-to-end without errors and returns a correctly formatted verdict object.
@@ -192,7 +199,7 @@ def test_full_pipeline(claim_text, expected_verdict_key, mock_env):
     assert len(final_state["messages"]) > 0
     # With the mocked debate round, it will run 3 times, adding 2 messages each time
     # plus the two initial research messages. 2 + 3*2 = 8
-    assert len(final_state["messages"]) == 8 
+    assert len(final_state["messages"]) == 8
     assert final_state["round_count"] == 3
-    
+
     print(f"Test for '{claim_text}' passed. Final verdict: {verdict_data['verdict']}")

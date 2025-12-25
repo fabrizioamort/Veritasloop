@@ -3,9 +3,12 @@ Unit tests for the content extraction tools.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from newspaper import ArticleException
-from src.tools.content_tools import fetch_article, assess_source_reliability
+
+from src.tools.content_tools import assess_source_reliability, fetch_article
+
 
 class TestContentTools(unittest.TestCase):
 
@@ -33,7 +36,7 @@ class TestContentTools(unittest.TestCase):
         """Test fetch_article falling back to BeautifulSoup successfully."""
         # Make newspaper3k fail
         MockArticle.side_effect = ArticleException()
-        
+
         # Mock requests.get for the fallback
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -56,7 +59,7 @@ class TestContentTools(unittest.TestCase):
 
         # Medium reliability (HTTPS but not in whitelist)
         self.assertEqual(assess_source_reliability("https://www.randomblog.com/news"), "medium")
-        
+
         # Low reliability (no HTTPS or no URL)
         self.assertEqual(assess_source_reliability("http://unsecure-site.net"), "low")
         self.assertEqual(assess_source_reliability(""), "low")

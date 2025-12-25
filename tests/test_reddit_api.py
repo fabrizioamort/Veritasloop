@@ -1,8 +1,10 @@
 # test_reddit_api.py
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.tools import reddit_api
+
 
 class TestRedditApi(unittest.TestCase):
 
@@ -22,7 +24,7 @@ class TestRedditApi(unittest.TestCase):
 
         mock_subreddit = MagicMock()
         mock_subreddit.search.return_value = [mock_submission]
-        
+
         mock_reddit_instance = MagicMock()
         mock_reddit_instance.subreddit.return_value = mock_subreddit
         mock_reddit.return_value = mock_reddit_instance

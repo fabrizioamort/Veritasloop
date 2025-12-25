@@ -1,10 +1,12 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from src.utils.claim_extractor import extract_from_text, extract_from_url
+
 from src.models.schemas import Claim, ClaimCategory, Entities
+from src.utils.claim_extractor import extract_from_url
+
 
 class TestClaimExtractor(unittest.TestCase):
-    
+
     def setUp(self):
         # Sample claims for different categories
         self.claims = {
@@ -30,13 +32,13 @@ class TestClaimExtractor(unittest.TestCase):
         url = "https://example.com/news"
         title = "Example News"
         text = "This is the body of the article."
-        
+
         # Mock Article
         mock_article = MagicMock()
         mock_article.title = title
         mock_article.text = text
         mock_article_cls.return_value = mock_article
-        
+
         # Mock extract_from_text response
         expected_claim = Claim(
             raw_input=f"{title}\n\n{text}",
@@ -45,17 +47,17 @@ class TestClaimExtractor(unittest.TestCase):
             category=ClaimCategory.OTHER
         )
         mock_extract_text.return_value = expected_claim
-        
+
         # Call function
         result = extract_from_url(url)
-        
+
         # Verify Article interactions
         mock_article.download.assert_called_once()
         mock_article.parse.assert_called_once()
-        
+
         # Verify extract_from_text called with combined text
         mock_extract_text.assert_called_once_with(f"{title}\n\n{text}")
-        
+
         # Verify result raw_input updated to URL
         self.assertEqual(result.raw_input, url)
         self.assertEqual(result.core_claim, "Core claim")

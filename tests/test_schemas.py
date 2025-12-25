@@ -1,25 +1,27 @@
 """
 Unit tests for data models and schemas.
 """
-import pytest
 from datetime import datetime
 from uuid import UUID
+
+import pytest
 from pydantic import ValidationError
 
 from src.models.schemas import (
+    AgentType,
     Claim,
     ClaimCategory,
-    Entities,
-    Source,
-    Reliability,
-    AgentType,
     DebateMessage,
+    Entities,
     MessageType,
+    Reliability,
+    Source,
     Verdict,
-    VerdictType,
     VerdictAnalysis,
-    VerdictMetadata
+    VerdictMetadata,
+    VerdictType,
 )
+
 
 def test_claim_creation_defaults():
     """Test Claim creation with default values."""
@@ -135,14 +137,14 @@ def test_verdict_serialization():
             total_sources_checked=10
         )
     )
-    
+
     # Check simple properties
     assert verdict.verdict == VerdictType.PARZIALMENTE_VERO
-    
+
     # Test JSON roundtrip
     json_str = verdict.model_dump_json()
     assert "PARZIALMENTE_VERO" in json_str
-    
+
     # Re-hydrate
     v2 = Verdict.model_validate_json(json_str)
     assert v2.analysis.pro_strength == "High"

@@ -1,7 +1,8 @@
 import asyncio
 import json
+
 import websockets
-import pytest
+
 
 async def run_test(payload, test_name):
     """Connects to the WebSocket, sends a payload, and prints the response."""
@@ -14,7 +15,7 @@ async def run_test(payload, test_name):
                 response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
                 print("✅ Server Response:")
                 print(json.loads(response))
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 print("✅ Server did not respond, which may be correct (e.g., silent close).")
 
     except websockets.exceptions.ConnectionClosed as e:

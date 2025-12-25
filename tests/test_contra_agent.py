@@ -2,19 +2,17 @@
 Unit tests for the ContraAgent class.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, ANY
-from uuid import uuid4
 
 from src.agents.contra_agent import ContraAgent
 from src.models.schemas import (
-    Claim,
-    GraphState,
-    DebateMessage,
     AgentType,
+    Claim,
+    DebateMessage,
+    GraphState,
     MessageType,
-    Reliability,
-    Source
 )
 from src.utils.tool_manager import ToolManager
 
@@ -80,7 +78,7 @@ def test_think_initial_round(contra_agent, mock_tool_manager, mock_llm):
 
     # Verify search was called
     mock_tool_manager.search_web.assert_called()
-    
+
     # Verify LLM was called with correct prompt structure
     mock_llm.invoke.assert_called_once()
     call_args = mock_llm.invoke.call_args[0][0]
@@ -138,9 +136,9 @@ def test_search_strategy(contra_agent, mock_tool_manager):
     # Test that default search uses fact_check_first strategy for initial round
     claim = Claim(raw_input="Test", core_claim="Test", category="other")
     state = GraphState(claim=claim, messages=[], pro_sources=[], contra_sources=[], round_count=0)
-    
+
     contra_agent.think(state)
-    
+
     # Check if search_web was called with expected tools for fact checking
     # Note: The BaseAgent.search logic calls tool_manager.search_web
     # We just want to ensure it's calling something.

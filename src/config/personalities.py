@@ -4,7 +4,8 @@ Defines different communication styles and agent names.
 """
 
 from enum import Enum
-from typing import Dict, Any
+from typing import Any
+
 
 class Personality(str, Enum):
     """Available personality types for agents."""
@@ -198,7 +199,7 @@ def get_personality_prompt(agent_type: str, personality: str) -> str:
         raise ValueError(f"Unknown agent type: {agent_type}")
 
 
-def get_personality_config(agent_type: str, personality: str) -> Dict[str, Any]:
+def get_personality_config(agent_type: str, personality: str) -> dict[str, Any]:
     """
     Get complete configuration for an agent.
 

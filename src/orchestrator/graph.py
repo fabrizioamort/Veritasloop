@@ -4,15 +4,16 @@ Main orchestration graph for the VeritasLoop system.
 Defines the state machine for the multi-agent debate and verification process.
 """
 
-from langgraph.graph import StateGraph, START, END
-from src.models.schemas import GraphState
-from src.orchestrator.debate import contra_turn, pro_turn
-from src.agents.pro_agent import ProAgent
+from langgraph.graph import END, START, StateGraph
+
 from src.agents.contra_agent import ContraAgent
 from src.agents.judge_agent import JudgeAgent
-from src.utils.tool_manager import ToolManager
+from src.agents.pro_agent import ProAgent
+from src.models.schemas import GraphState
+from src.orchestrator.debate import contra_turn, pro_turn
 from src.utils.claim_extractor import extract_from_text, get_llm
 from src.utils.logger import get_logger, log_performance
+from src.utils.tool_manager import ToolManager
 
 logger = get_logger(__name__)
 
@@ -34,7 +35,7 @@ def extract_claim(state: GraphState) -> dict:
         if not current_claim.core_claim or current_claim.core_claim == current_claim.raw_input:
             extracted = extract_from_text(current_claim.raw_input)
             logger.info(
-                f"Claim extracted successfully",
+                "Claim extracted successfully",
                 extra={
                     "core_claim": extracted.core_claim[:100],
                     "category": extracted.category,
@@ -68,10 +69,11 @@ def enable_tracing():
     """
     global _tracing_enabled
     try:
-        from phoenix.otel import register
-        from openinference.instrumentation.langchain import LangChainInstrumentor
         import signal
         from contextlib import contextmanager
+
+        from openinference.instrumentation.langchain import LangChainInstrumentor
+        from phoenix.otel import register
 
         @contextmanager
         def timeout(seconds):
@@ -147,7 +149,7 @@ def get_app():
         with log_performance("pro_research", logger):
             message = pro_agent.think(state)
             logger.info(
-                f"PRO research complete",
+                "PRO research complete",
                 extra={
                     "sources_found": len(message.sources),
                     "confidence": message.confidence,
@@ -166,7 +168,7 @@ def get_app():
         with log_performance("contra_research", logger):
             message = contra_agent.think(state)
             logger.info(
-                f"CONTRA research complete",
+                "CONTRA research complete",
                 extra={
                     "sources_found": len(message.sources),
                     "confidence": message.confidence,
@@ -201,11 +203,11 @@ def get_app():
     workflow.add_node("extract", extract_claim)
     workflow.add_node("pro_research", pro_research)
     workflow.add_node("contra_research", contra_research)
-    
+
     # Split debate nodes
     workflow.add_node("contra_node", contra_turn)
     workflow.add_node("pro_node", pro_turn)
-    
+
     workflow.add_node("judge", judge_verdict)
 
     # Define the edges
@@ -215,7 +217,7 @@ def get_app():
 
     # Initial transition to debate loop (Pro speaks first in debate)
     workflow.add_edge("contra_research", "pro_node")
-    
+
     # Pro speaks first in round, then Contra
     workflow.add_edge("pro_node", "contra_node")
 
@@ -230,7 +232,7 @@ def get_app():
     )
 
     workflow.add_edge("judge", END)
-    
+
     return workflow.compile()
 
 # For backwards compatibility or direct script usage:

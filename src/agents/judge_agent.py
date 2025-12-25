@@ -4,18 +4,15 @@ Defines the JUDGE agent for the VeritasLoop system.
 The JUDGE agent evaluates the debate between the PRO and CONTRA agents
 and delivers a final, structured verdict on the authenticity of a news claim.
 """
-import json
 import time
-from typing import Any, Dict, List
+from typing import Any
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers.openai_functions import JsonOutputFunctionsParser
-from pydantic import BaseModel
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.utils.function_calling import convert_to_openai_function
 
 from src.agents.base_agent import BaseAgent
-from src.models.schemas import (AgentType, DebateMessage, GraphState, MessageType,
-                              Verdict, VerdictType)
+from src.models.schemas import GraphState, Verdict, VerdictType
 from src.utils.tool_manager import ToolManager
 
 
@@ -90,10 +87,10 @@ Your role is to analyze the arguments presented by a PRO agent and a CONTRA agen
                     reliability = source.reliability.value.lower() if hasattr(source.reliability, 'value') else str(source.reliability).lower()
                     history.append(f"- {source.title}: {source.url} (Reliability: {reliability})")
             history.append("-" * 20)
-        
+
         return "\n".join(history)
 
-    def _calculate_metadata(self, state: GraphState) -> Dict:
+    def _calculate_metadata(self, state: GraphState) -> dict:
         """Calculates metadata from the graph state."""
         start_time = state.get("start_time", time.time())
         processing_time = time.time() - start_time
@@ -110,22 +107,22 @@ Your role is to analyze the arguments presented by a PRO agent and a CONTRA agen
             "total_sources_checked": len(all_sources),
         }
 
-    def think(self, state: GraphState) -> Dict:
+    def think(self, state: GraphState) -> dict:
         """
         The `think` method for the JUDGE evaluates the debate and returns the final verdict.
         """
         self.logger.info("JUDGE agent is evaluating the debate.")
         language = state.get("language", "Italian")
-        
+
         debate_history_str = self._format_debate_history(state)
         debate_history_str += f"\n\nIMPORTANT: Your output must be in {language}."
-        
+
         prompt = ChatPromptTemplate.from_messages(
             [("system", self.system_prompt), ("user", debate_history_str)]
         )
-        
+
         chain = prompt | self.chain
-        
+
         try:
             # Chain may return either a dict (from JsonOutputFunctionsParser) or a Verdict model (in tests)
             verdict_result = chain.invoke({})

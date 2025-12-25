@@ -2,21 +2,21 @@
 Defines the ContraAgent class, responsible for challenging claims and providing skeptical analysis.
 """
 
-from typing import List, Dict, Any
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate
+from typing import Any
+
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agents.base_agent import BaseAgent
+from src.config.personalities import get_agent_name, get_personality_prompt
 from src.models.schemas import (
-    GraphState,
-    DebateMessage,
     AgentType,
+    DebateMessage,
+    GraphState,
     MessageType,
     Reliability,
-    Source
+    Source,
 )
 from src.utils.tool_manager import ToolManager
-from src.config.personalities import get_agent_name, get_personality_prompt
 
 
 class ContraAgent(BaseAgent):
@@ -81,7 +81,7 @@ class ContraAgent(BaseAgent):
 
         # Deduplicate results based on URL
         unique_results = {r['url']: r for r in search_results}.values()
-        
+
         # Convert search results to Source objects
         sources = []
         for res in unique_results:
@@ -89,7 +89,7 @@ class ContraAgent(BaseAgent):
             reliability = Reliability.MEDIUM
             if "snopes" in res['url'] or "factcheck" in res['url'] or "bufale" in res['url']:
                 reliability = Reliability.HIGH
-            
+
             sources.append(Source(
                 url=res['url'],
                 title=res.get('title', 'Unknown Title'),
@@ -97,13 +97,13 @@ class ContraAgent(BaseAgent):
                 reliability=reliability,
                 agent=AgentType.CONTRA
             ))
-            
+
         # Limit sources to top 5 for context window
         top_sources = sources[:5]
-        
+
         # 2. Argument Generation Phase
         formatted_sources = "\n".join([f"- {s.title}: {s.snippet} ({s.url})" for s in top_sources])
-        
+
         if is_initial_round:
             user_prompt = f"""
             Analyze this claim: "{claim.core_claim}"
@@ -151,7 +151,7 @@ class ContraAgent(BaseAgent):
             self.logger.error(f"LLM call failed in CONTRA agent: {e}")
             content = "Unable to generate counterargument due to technical difficulties. The system is experiencing issues communicating with the language model."
             confidence = 0.0
-        
+
         return DebateMessage(
             round=state['round_count'],
             agent=AgentType.CONTRA,
@@ -161,7 +161,7 @@ class ContraAgent(BaseAgent):
             confidence=confidence
         )
 
-    def _detect_fallacies(self, argument: str) -> List[str]:
+    def _detect_fallacies(self, argument: str) -> list[str]:
         """
         Helper to detect logical fallacies in an argument.
         

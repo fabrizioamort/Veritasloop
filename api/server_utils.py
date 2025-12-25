@@ -1,8 +1,9 @@
 
 import logging
-from typing import Any
 from datetime import datetime
+from typing import Any
 from uuid import UUID
+
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)

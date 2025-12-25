@@ -9,7 +9,6 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 # Ensure UTF-8 encoding for stdout on Windows
 if sys.platform == "win32":
@@ -18,15 +17,15 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from src.models.schemas import Claim, Entities, VerdictType
-from src.orchestrator.graph import get_app, enable_tracing
+from src.orchestrator.graph import enable_tracing, get_app
 from src.utils.claim_extractor import extract_from_url
 from src.utils.logger import (
-    setup_logging,
     get_logger,
-    set_request_context,
     init_metrics,
     log_metrics_summary,
     save_metrics_to_file,
+    set_request_context,
+    setup_logging,
 )
 
 logger = get_logger(__name__)
@@ -290,15 +289,16 @@ def start_phoenix_server(verbose: bool = False):
     # Check if Phoenix is already running
     if check_phoenix_running():
         if verbose:
-            print(f"\n🔭 Phoenix server already running!")
-            print(f"   View traces at: http://localhost:6006")
-            print(f"   Using existing Phoenix instance\n")
+            print("\n🔭 Phoenix server already running!")
+            print("   View traces at: http://localhost:6006")
+            print("   Using existing Phoenix instance\n")
         logger.info("Phoenix server already running on port 6006")
         return True  # Return True to indicate Phoenix is available
 
     try:
-        import phoenix as px
         from pathlib import Path
+
+        import phoenix as px
 
         # Create a directory for Phoenix data
         phoenix_dir = Path("data/phoenix")
@@ -318,10 +318,10 @@ def start_phoenix_server(verbose: bool = False):
         url = "http://localhost:6006"
 
         if verbose:
-            print(f"\n🔭 Phoenix observability enabled!")
+            print("\n🔭 Phoenix observability enabled!")
             print(f"   View traces at: {url}")
             print(f"   💾 Traces saved to: {db_path.absolute()}")
-            print(f"   📌 Traces persist across server restarts")
+            print("   📌 Traces persist across server restarts")
             print(f"   💡 Review past sessions anytime at {url}\n")
 
         logger.info(f"Phoenix server started at {url} with persistent storage at {db_path}")
@@ -344,7 +344,7 @@ def run_verification(
     input_text: str,
     verbose: bool = False,
     no_cache: bool = False,
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     enable_trace: bool = False,
     max_iterations: int = 3,
     max_searches: int = -1
@@ -495,9 +495,9 @@ def run_verification(
         print("\n" + "=" * 65)
         print("🔭 Phoenix Traces Available")
         print("=" * 65)
-        print(f"   View detailed traces at: http://localhost:6006")
-        print(f"   The Phoenix server is still running in the background.")
-        print(f"   You can review all traces anytime at the URL above.")
+        print("   View detailed traces at: http://localhost:6006")
+        print("   The Phoenix server is still running in the background.")
+        print("   You can review all traces anytime at the URL above.")
         print("=" * 65 + "\n")
 
     return result
