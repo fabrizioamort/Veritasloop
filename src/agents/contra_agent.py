@@ -3,6 +3,7 @@ Defines the ContraAgent class, responsible for challenging claims and providing 
 """
 
 from typing import List, Dict, Any
+from concurrent.futures import ThreadPoolExecutor
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -66,18 +67,32 @@ class ContraAgent(BaseAgent):
         search_query = f"fake news {claim.core_claim}" if is_initial_round else f"contradiction {claim.core_claim}"
 
         # CONTRA strategy: FactCheck -> Social -> Blogs (simulated by broad search)
-        # We'll use a mix of strategies.
-        search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
-
-        # Also try to find specific contradictions if we have previous messages
+        # OPTIMIZATION: Run multiple searches in parallel when doing rebuttals
         if not is_initial_round and messages:
             last_message = messages[-1]
             if last_message.agent == AgentType.PRO:
-                # Search for counter-evidence to PRO's specific points
-                # This is a simplification; a real agent would extract points first
+                # Parallel search execution - run both searches simultaneously
+                # This saves ~1 second per round (3 seconds total across 3 rounds)
                 rebuttal_query = f"debunk {claim.core_claim}"
-                more_results = self.search(rebuttal_query, strategy="web_deep_dive", max_searches=max_searches)
-                search_results.extend(more_results)
+
+                self.logger.info("Executing parallel searches for CONTRA rebuttal")
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    # Submit both searches to run concurrently
+                    future1 = executor.submit(self.search, search_query, "fact_check_first", max_searches)
+                    future2 = executor.submit(self.search, rebuttal_query, "web_deep_dive", max_searches)
+
+                    # Wait for both to complete
+                    results1 = future1.result()
+                    results2 = future2.result()
+
+                    # Combine results
+                    search_results = results1 + results2
+            else:
+                # Fallback if last message wasn't from PRO
+                search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
+        else:
+            # Initial round: single search is sufficient
+            search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
 
         # Deduplicate results based on URL
         unique_results = {r['url']: r for r in search_results}.values()

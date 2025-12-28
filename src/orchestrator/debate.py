@@ -5,19 +5,11 @@ This module contains the logic for a single round of debate between the PRO and 
 from src.models.schemas import GraphState
 from src.agents.pro_agent import ProAgent
 from src.agents.contra_agent import ContraAgent
-from src.utils.tool_manager import ToolManager
-from src.utils.claim_extractor import get_llm
+from src.utils.resource_pool import get_shared_llm, get_shared_tool_manager
 from src.utils.logger import get_logger, log_performance
 
 logger = get_logger(__name__)
 
-# Initialize needed resources for the isolated function if strictly necessary,
-# but ideally these should be passed in or available. 
-# Since `debate_round` is a node function, it doesn't accept the agents as args easily in LangGraph's basic setup
-# without using `partial` or global scope. 
-# We will duplicate the init here for safety or we could import the instances from graph.py if we avoid circular imports.
-# To avoid circular imports (since graph imports debate), we re-instantiate or use a singleton pattern.
-# For MVP simplicity, we re-instantiate.
 
 def pro_turn(state: GraphState) -> GraphState:
     """
@@ -29,10 +21,10 @@ def pro_turn(state: GraphState) -> GraphState:
     logger.info(f"Starting debate round {new_round} - PRO Turn")
 
     with log_performance(f"pro_turn_round_{new_round}", logger):
-        # Initialize resources
-        llm = get_llm()
-        tool_manager = ToolManager()
-        
+        # Use shared resources (singleton pattern for performance)
+        llm = get_shared_llm()
+        tool_manager = get_shared_tool_manager()
+
         # Get personality from state
         personality = state.get('pro_personality', 'ASSERTIVE')
         pro_agent = ProAgent(llm, tool_manager, personality=personality)
@@ -64,10 +56,10 @@ def contra_turn(state: GraphState) -> GraphState:
     logger.info(f"Continuing debate round {round_num} - CONTRA Turn")
 
     with log_performance(f"contra_turn_round_{round_num}", logger):
-        # Initialize resources
-        llm = get_llm()
-        tool_manager = ToolManager()
-        
+        # Use shared resources (singleton pattern for performance)
+        llm = get_shared_llm()
+        tool_manager = get_shared_tool_manager()
+
         # Get personality from state
         personality = state.get('contra_personality', 'ASSERTIVE')
         contra_agent = ContraAgent(llm, tool_manager, personality=personality)
