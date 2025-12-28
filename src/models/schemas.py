@@ -141,6 +141,7 @@ class GraphState(TypedDict):
         language: Language for agent responses (default: Italian).
         pro_personality: Personality style for PRO agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
         contra_personality: Personality style for CONTRA agent (PASSIVE, ASSERTIVE, or AGGRESSIVE).
+        research_depth: Research depth level (0=none, 1=shallow, 2=deep). Used for incremental research.
     """
     claim: Optional[Claim]
     messages: Annotated[List[DebateMessage], operator.add]
@@ -153,3 +154,4 @@ class GraphState(TypedDict):
     language: str
     pro_personality: str
     contra_personality: str
+    research_depth: int

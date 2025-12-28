@@ -24,21 +24,91 @@ class ProAgent(BaseAgent):
         self.system_prompt = get_personality_prompt("PRO", personality)
         self.logger.info(f"PRO Agent initialized with personality: {personality} (Display name: {self.agent_display_name})")
 
+    def opening_statement(self, state: GraphState) -> DebateMessage:
+        """
+        Generate an opening statement WITHOUT research.
+
+        This is the "lazy research" optimization - PRO makes an initial position
+        statement based on the claim itself, without searching for sources first.
+        This dramatically improves perceived performance (time to first message).
+
+        Args:
+            state: Current graph state with the claim
+
+        Returns:
+            DebateMessage: Opening statement with no sources
+        """
+        claim = state['claim']
+        language = state.get('language', 'Italian')
+
+        self.logger.info(f"PRO generating opening statement (no research)")
+
+        prompt = f"""
+Claim: {claim.core_claim}
+Category: {claim.category}
+
+You are opening a debate in support of this claim.
+Make a compelling opening statement based on the claim itself and common knowledge.
+
+Your opening should:
+- State your position clearly
+- Introduce the key points you'll defend
+- Set a strong, confident tone
+- DO NOT cite specific sources yet - this is your opening position
+
+Speak naturally, as if you are in a live debate. This is your chance to frame the discussion.
+
+IMPORTANT: Your output must be in {language}.
+"""
+
+        try:
+            response = self.llm.invoke([
+                SystemMessage(content=self.system_prompt),
+                HumanMessage(content=prompt)
+            ])
+            content = response.content
+            confidence = 60.0  # Lower confidence without research backing
+        except Exception as e:
+            self.logger.error(f"LLM call failed in PRO opening statement: {e}")
+            content = "Unable to generate opening statement due to technical difficulties."
+            confidence = 0.0
+
+        return DebateMessage(
+            round=0,
+            agent=AgentType.PRO,
+            message_type=MessageType.ARGUMENT,
+            content=str(content),
+            sources=[],  # No sources in opening statement
+            confidence=confidence
+        )
+
     def think(self, state: GraphState) -> DebateMessage:
         """
         Generates an argument or defense for the claim based on search results.
+        Supports incremental research with adaptive depth.
         """
         claim = state['claim']
         messages = state['messages']
         max_searches = state.get('max_searches', -1)  # Get max_searches from state, default unlimited
         language = state.get('language', 'Italian')
+        research_depth = state.get('research_depth', 1)  # 0=none, 1=shallow, 2=deep
 
+        self.logger.info(f"Thinking about claim: {claim.core_claim} (research_depth={research_depth})")
 
-        self.logger.info(f"Thinking about claim: {claim.core_claim}")
-
-        # 1. Search Strategy
-        # Prioritize official/institutional sources
-        search_results = self.search(claim.core_claim, strategy="institutional", max_searches=max_searches)
+        # 1. Search Strategy - Adaptive based on research_depth
+        # TIER 2 OPTIMIZATION: Incremental research
+        if research_depth == 0:
+            # No research - use opening statement instead
+            return self.opening_statement(state)
+        elif research_depth == 1:
+            # Shallow research: 1-2 sources only
+            search_results = self.search(claim.core_claim, strategy="institutional", max_searches=max_searches)
+            search_results = search_results[:2]  # Limit to 2 sources
+            self.logger.info("Shallow research: using top 2 sources")
+        else:  # research_depth >= 2
+            # Deep research: Full 3-5 sources
+            search_results = self.search(claim.core_claim, strategy="institutional", max_searches=max_searches)
+            self.logger.info("Deep research: using top 5 sources")
         
         # 2. Construct Prompt
         formatted_results = "\n".join([
@@ -79,8 +149,10 @@ IMPORTANT: Your output must be in {language}.
             confidence = 0.0
 
         # 4. Parse Sources (Simple heuristic for MVP)
+        # Limit sources based on research_depth
+        num_sources = 1 if research_depth == 1 else 3
         sources = []
-        for res in search_results[:3]:
+        for res in search_results[:num_sources]:
             # In a real implementation, we would check if the URL is actually used in the content
             sources.append(Source(
                 url=res.get('url', 'http://unknown.com'),

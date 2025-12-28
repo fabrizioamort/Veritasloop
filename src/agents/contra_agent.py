@@ -59,44 +59,60 @@ class ContraAgent(BaseAgent):
         messages = state['messages']
         max_searches = state.get('max_searches', -1)  # Get max_searches from state, default unlimited
         language = state.get('language', 'Italian')
+        research_depth = state.get('research_depth', 1)  # 0=none, 1=shallow, 2=deep
 
         # Determine if this is initial research (Round 0) or a rebuttal
         is_initial_round = state['round_count'] == 0
 
-        # 1. Research Phase
+        self.logger.info(f"CONTRA thinking (round {state['round_count']}, research_depth={research_depth})")
+
+        # 1. Research Phase - Adaptive based on research_depth
+        # TIER 2 OPTIMIZATION: Incremental research
         search_query = f"fake news {claim.core_claim}" if is_initial_round else f"contradiction {claim.core_claim}"
 
         # CONTRA strategy: FactCheck -> Social -> Blogs (simulated by broad search)
         # OPTIMIZATION: Run multiple searches in parallel when doing rebuttals
+        # TIER 2: Adjust search depth based on research_depth parameter
         if not is_initial_round and messages:
             last_message = messages[-1]
             if last_message.agent == AgentType.PRO:
-                # Parallel search execution - run both searches simultaneously
-                # This saves ~1 second per round (3 seconds total across 3 rounds)
-                rebuttal_query = f"debunk {claim.core_claim}"
+                # Adaptive search based on research_depth
+                if research_depth >= 2:
+                    # Deep research: Parallel search execution - run both searches simultaneously
+                    # This saves ~1 second per round (3 seconds total across 3 rounds)
+                    rebuttal_query = f"debunk {claim.core_claim}"
 
-                self.logger.info("Executing parallel searches for CONTRA rebuttal")
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    # Submit both searches to run concurrently
-                    future1 = executor.submit(self.search, search_query, "fact_check_first", max_searches)
-                    future2 = executor.submit(self.search, rebuttal_query, "web_deep_dive", max_searches)
+                    self.logger.info("Deep research: Executing parallel searches for CONTRA rebuttal")
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        # Submit both searches to run concurrently
+                        future1 = executor.submit(self.search, search_query, "fact_check_first", max_searches)
+                        future2 = executor.submit(self.search, rebuttal_query, "web_deep_dive", max_searches)
 
-                    # Wait for both to complete
-                    results1 = future1.result()
-                    results2 = future2.result()
+                        # Wait for both to complete
+                        results1 = future1.result()
+                        results2 = future2.result()
 
-                    # Combine results
-                    search_results = results1 + results2
+                        # Combine results
+                        search_results = results1 + results2
+                else:
+                    # Shallow research: Single search only
+                    self.logger.info("Shallow research: Single search for CONTRA rebuttal")
+                    search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
             else:
                 # Fallback if last message wasn't from PRO
                 search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
         else:
-            # Initial round: single search is sufficient
-            search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
+            # Initial round: adapt based on research_depth
+            if research_depth >= 2:
+                self.logger.info("Initial round: Deep research")
+                search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
+            else:
+                self.logger.info("Initial round: Shallow research")
+                search_results = self.search(search_query, strategy="fact_check_first", max_searches=max_searches)
 
         # Deduplicate results based on URL
         unique_results = {r['url']: r for r in search_results}.values()
-        
+
         # Convert search results to Source objects
         sources = []
         for res in unique_results:
@@ -104,7 +120,7 @@ class ContraAgent(BaseAgent):
             reliability = Reliability.MEDIUM
             if "snopes" in res['url'] or "factcheck" in res['url'] or "bufale" in res['url']:
                 reliability = Reliability.HIGH
-            
+
             sources.append(Source(
                 url=res['url'],
                 title=res.get('title', 'Unknown Title'),
@@ -112,9 +128,12 @@ class ContraAgent(BaseAgent):
                 reliability=reliability,
                 agent=AgentType.CONTRA
             ))
-            
-        # Limit sources to top 5 for context window
-        top_sources = sources[:5]
+
+        # Limit sources based on research_depth
+        # Shallow: 2 sources, Deep: 5 sources
+        max_sources = 2 if research_depth == 1 else 5
+        top_sources = sources[:max_sources]
+        self.logger.info(f"Using {len(top_sources)} sources (research_depth={research_depth})")
         
         # 2. Argument Generation Phase
         formatted_sources = "\n".join([f"- {s.title}: {s.snippet} ({s.url})" for s in top_sources])
